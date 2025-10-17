@@ -23,7 +23,7 @@ sheet = gc.open_by_key(SHEET_ID).sheet1
 bot = Bot(token=TELEGRAM_TOKEN)
 dp = Dispatcher()
 
-# --- Sample menu questions (demo) ---
+# --- Example questions ---
 questions = [
     {
         "dish": "Салат Цезар",
@@ -42,14 +42,18 @@ questions = [
 user_progress = {}
 
 async def send_question(user_id):
+    """Відправляє наступне питання користувачу"""
     if user_id not in user_progress:
         user_progress[user_id] = {"index": 0, "correct": 0}
 
     idx = user_progress[user_id]["index"]
 
     if idx >= len(questions):
-        await bot.send_message(user_id, f"✅ Тест завершено! Правильних відповідей: {user_progress[user_id]['correct']}/{len(questions)}")
-        # save to Google Sheets
+        await bot.send_message(
+            user_id,
+            f"✅ Тест завершено! Правильних відповідей: {user_progress[user_id]['correct']}/{len(questions)}"
+        )
+        # запис у Google Sheet
         sheet.append_row([
             str(datetime.datetime.now()),
             str(user_id),
@@ -101,7 +105,6 @@ async def handle_message(message: types.Message):
     await send_question(user_id)
 
 async def main():
-    dp.include_router(dp)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
