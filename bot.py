@@ -3,7 +3,8 @@ import os
 import random
 import datetime
 import gspread
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher, types, F
+from aiogram.filters import Command
 from google.oauth2.service_account import Credentials
 
 # --- Load environment variables ---
@@ -64,9 +65,10 @@ async def send_question(user_id):
         return
 
     q = questions[idx]
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for opt in q["options"]:
-        keyboard.add(opt)
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=[[types.KeyboardButton(text=opt)] for opt in q["options"]],
+        resize_keyboard=True
+    )
 
     await bot.send_message(user_id, f"❓ {q['question']}", reply_markup=keyboard)
 
@@ -79,14 +81,16 @@ async def send_question(user_id):
 
     asyncio.create_task(timeout())
 
-@dp.message()
+@dp.message(Command("start"))
+async def start_test(message: types.Message):
+    user_id = message.from_user.id
+    user_progress[user_id] = {"index": 0, "correct": 0}
+    await bot.send_message(user_id, "🍽️ Почнемо тест по меню!")
+    await send_question(user_id)
+
+@dp.message(F.text)
 async def handle_message(message: types.Message):
     user_id = message.from_user.id
-
-    if message.text.lower() == "/start":
-        await bot.send_message(user_id, "🍽️ Почнемо тест по меню!")
-        await send_question(user_id)
-        return
 
     if user_id not in user_progress:
         await bot.send_message(user_id, "Напиши /start щоб розпочати тест.")
