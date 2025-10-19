@@ -256,11 +256,15 @@ async def send_question(message: types.Message, state: FSMContext):
     q = questions[current]
     question_text = f"❓ Питання {current + 1}/{len(questions)}\n\n{q['question']}"
     
+    # ВАЖЛИВО: Перемішуємо варіанти відповідей щоразу!
+    options = q['options'].copy()
+    random.shuffle(options)
+    
     # Клавіатура з 4 варіантами відповідей (по 2 в ряд)
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
-            [types.KeyboardButton(text=q['options'][0]), types.KeyboardButton(text=q['options'][1])],
-            [types.KeyboardButton(text=q['options'][2]), types.KeyboardButton(text=q['options'][3])]
+            [types.KeyboardButton(text=options[0]), types.KeyboardButton(text=options[1])],
+            [types.KeyboardButton(text=options[2]), types.KeyboardButton(text=options[3])]
         ],
         resize_keyboard=True,
         one_time_keyboard=True
