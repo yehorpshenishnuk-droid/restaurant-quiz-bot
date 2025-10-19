@@ -103,10 +103,26 @@ def generate_questions_from_poster():
     # Генеруємо різні типи питань
     for product in products:
         product_name = product.get('product_name', '')
-        price = float(product.get('price', 0)) / 100
+        
+        # Ціна може бути числом або словником
+        price_raw = product.get('price', 0)
+        if isinstance(price_raw, dict):
+            price = 0  # Якщо ціна - словник, пропускаємо
+        else:
+            try:
+                price = float(price_raw) / 100
+            except (ValueError, TypeError):
+                price = 0
+        
         weight = product.get('out', '')
         category_id = product.get('category_id')
-        ingredients = product.get('ingredients', [])
+        
+        # Інгредієнти можуть бути списком або словником
+        ingredients_raw = product.get('ingredients', [])
+        if isinstance(ingredients_raw, list):
+            ingredients = ingredients_raw
+        else:
+            ingredients = []
         
         if not product_name:
             continue
