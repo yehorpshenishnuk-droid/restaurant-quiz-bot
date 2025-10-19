@@ -8,16 +8,16 @@ from oauth2client.service_account import ServiceAccountCredentials
 from dotenv import load_dotenv
 import os
 
-# Загрузка переменных окружения (.env)
+# Загрузка переменных окружения
 load_dotenv()
 
-TOKEN = os.getenv("BOT_TOKEN")
-SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
+TOKEN = os.getenv("TELEGRAM_TOKEN") or os.getenv("BOT_TOKEN")
+SPREADSHEET_ID = os.getenv("SHEET_ID") or os.getenv("SPREADSHEET_ID")
 
-# Категории (если нужно использовать фильтры)
-HOT_CATEGORIES = {4, 13, 15, 46, 33}
-COLD_CATEGORIES = {7, 8, 11, 16, 18, 19, 29, 32, 36, 44}
-BAR_CATEGORIES = {9, 14, 27, 28, 34, 41, 42, 47, 22, 24, 25, 26, 39, 30}
+if not TOKEN:
+    raise ValueError("❌ TELEGRAM_TOKEN не знайдено!")
+if not SPREADSHEET_ID:
+    raise ValueError("❌ SHEET_ID не знайдено!")
 
 logging.basicConfig(level=logging.INFO)
 dp = Dispatcher()
@@ -25,14 +25,25 @@ dp = Dispatcher()
 # Подключение к Google Sheets
 def get_google_sheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("creds.json", scope)
+    
+    # На Render файл буде в /etc/secrets/
+    creds_path = "/etc/secrets/project-telegram-bot-475412-704fc4e68815.json"
+    
+    # Якщо файлу немає (локальна розробка), шукаємо creds.json
+    if not os.path.exists(creds_path):
+        creds_path = "creds.json"
+    
+    logging.info(f"📂 Читаємо credentials з: {creds_path}")
+    creds = ServiceAccountCredentials.from_json_keyfile_name(creds_path, scope)
     client = gspread.authorize(creds)
     sheet = client.open_by_key(SPREADSHEET_ID).sheet1
+    logging.info("✅ Успішно підключено до Google Sheets!")
     return sheet
 
 # Получение случайных вопросов
 def get_random_questions(sheet, count=15):
     data = sheet.get_all_records()
+    logging.info(f"📊 Знайдено {len(data)} питань у таблиці")
     if len(data) < count:
         count = len(data)
     return random.sample(data, count)
@@ -41,11 +52,15 @@ def get_random_questions(sheet, count=15):
 @dp.message(Command("start"))
 async def start_command(message: types.Message):
     await message.answer("🍽 Почнемо тест по меню!")
-    sheet = get_google_sheet()
-    questions = get_random_questions(sheet)
-    await run_quiz(message, questions)
+    try:
+        sheet = get_google_sheet()
+        questions = get_random_questions(sheet)
+        await run_quiz(message, questions)
+    except Exception as e:
+        await message.answer(f"❌ Помилка: {str(e)}")
+        logging.error(f"Error: {e}", exc_info=True)
 
-# Тест
+# Тест (УВАГА: це не працює в aiogram 3.x - потрібен FSM!)
 async def run_quiz(message: types.Message, questions):
     correct = 0
     for q in questions:
@@ -57,6 +72,7 @@ async def run_quiz(message: types.Message, questions):
         )
         await message.answer(question_text, reply_markup=keyboard)
 
+        # TODO: Це НЕ ПРАЦЮЄ в aiogram 3.x - потрібен FSM
         try:
             answer = await dp.bot.wait_for(
                 "message",
@@ -78,7 +94,8 @@ async def run_quiz(message: types.Message, questions):
 # Основная функция запуска
 async def main():
     bot = Bot(token=TOKEN)
-    await bot.delete_webhook(drop_pending_updates=True)  # снимает конфликт polling
+    await bot.delete_webhook(drop_pending_updates=True)
+    logging.info("🤖 Бот запущено!")
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
@@ -86,3 +103,12 @@ if __name__ == "__main__":
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         logging.info("Бот зупинено вручну.")
+```
+
+---
+
+## Не забудь: Дай доступ до Google Sheets!
+
+Відкрий свою таблицю → "Share" (Поділитися) → Додай email:
+```
+greco-bot@project-telegram-bot-475412.iam.gserviceaccount.com
