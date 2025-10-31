@@ -8,7 +8,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from google.oauth2.service_account import Credentials
 from dotenv import load_dotenv
 
-# === Загрузка токена ===
+# === Загрузка переменных окружения ===
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
@@ -16,7 +16,7 @@ if not TOKEN:
     raise ValueError("❌ BOT_TOKEN не найден! Проверь .env или Environment Variables на Render")
 
 # === Настройка Google Sheets ===
-SERVICE_FILE = "service_account.json"
+SERVICE_FILE = "/etc/secrets/project-telegram-bot-475412-704fc4e68815.json"
 SHEET_NAME = "MenuQuiz"
 
 SCOPES = [
@@ -24,9 +24,14 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive"
 ]
 
+# Авторизация Google Sheets
 creds = Credentials.from_service_account_file(SERVICE_FILE, scopes=SCOPES)
 client = gspread.authorize(creds)
-sheet = client.open(SHEET_NAME).sheet1
+
+try:
+    sheet = client.open(SHEET_NAME).sheet1
+except Exception as e:
+    raise RuntimeError(f"❌ Ошибка при подключении к Google Sheets: {e}")
 
 # === Инициализация бота ===
 bot = Bot(token=TOKEN)
@@ -35,12 +40,12 @@ dp = Dispatcher()
 # === Состояние пользователей ===
 user_states = {}
 
-
+# === Функция для начала теста ===
 async def start_quiz(message: types.Message):
     await message.answer("🍽 Почнемо тест по меню!")
     await send_question(message)
 
-
+# === Получение случайного вопроса из Google Sheets ===
 def get_random_question():
     data = sheet.get_all_records()
     if not data:
@@ -57,7 +62,7 @@ def get_random_question():
         "answer": str(question.get("Answer")).strip()
     }
 
-
+# === Отправка вопроса ===
 async def send_question(message: types.Message):
     q = get_random_question()
     if not q:
@@ -66,7 +71,7 @@ async def send_question(message: types.Message):
 
     user_states[message.from_user.id] = {"answer": q["answer"]}
 
-    # 🧩 Создаём клавиатуру (исправлена ошибка ValidationError)
+    # 🧩 Создаём клавиатуру (исправлено для Aiogram 3)
     keyboard = ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text=str(opt)) for opt in q["options"] if opt]
@@ -76,17 +81,16 @@ async def send_question(message: types.Message):
 
     await message.answer(f"❓ {q['question']}", reply_markup=keyboard)
 
-
+# === Обработчики команд ===
 @dp.message(Command("start"))
 async def start_handler(message: types.Message):
-    await message.answer("👋 Напиши /quiz щоб розпочати тест.")
-
+    await message.answer("👋 Вітаю! Напиши /quiz щоб розпочати тест по меню.")
 
 @dp.message(Command("quiz"))
 async def quiz_command(message: types.Message):
     await start_quiz(message)
 
-
+# === Обработка ответов пользователей ===
 @dp.message()
 async def answer_handler(message: types.Message):
     user_id = message.from_user.id
@@ -103,11 +107,10 @@ async def answer_handler(message: types.Message):
 
     await send_question(message)
 
-
+# === Основной запуск ===
 async def main():
     print("✅ Bot запущен и работает через polling...")
     await dp.start_polling(bot)
-
 
 if __name__ == "__main__":
     asyncio.run(main())
