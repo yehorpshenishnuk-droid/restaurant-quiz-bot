@@ -17,7 +17,7 @@ if not TOKEN:
 
 # === Настройка Google Sheets ===
 SERVICE_FILE = "/etc/secrets/project-telegram-bot-475412-704fc4e68815.json"
-SHEET_NAME = "MenuQuiz"
+SHEET_NAME = "Telegram BOT"
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
