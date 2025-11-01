@@ -276,6 +276,9 @@ async def send_question(message: types.Message, state: FSMContext):
     options = q['options'].copy()
     random.shuffle(options)
     
+    # КРИТИЧНО: Конвертуємо всі варіанти в строки для KeyboardButton
+    options = [str(opt) for opt in options]
+    
     # Клавіатура з 4 варіантами відповідей (по 2 в ряд)
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
