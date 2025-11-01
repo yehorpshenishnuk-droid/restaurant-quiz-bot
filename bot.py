@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import random
+import re
 import gspread
 import requests
 from datetime import datetime
@@ -99,6 +100,9 @@ def generate_questions_from_poster():
         return
     
     questions = []
+    
+    # ID категорій бару
+    bar_category_ids = {9, 14, 27, 28, 34, 41, 42, 47, 22, 24, 25, 26, 39, 30}
     
     # Генеруємо різні типи питань
     for product in products:
