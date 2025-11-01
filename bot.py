@@ -1,4 +1,17 @@
-import asyncio
+# 2. ПИТАННЯ ПРО СКЛАД/ІНГРЕДІЄНТИ (40% питань)
+        if ingredients and len(ingredients) > 0:
+            # Вибираємо випадковий інгредієнт з цієї страви
+            ingredient_names = []
+            for ing in ingredients:
+                ing_name = ing.get('ingredient_name', '')
+                # ВАЖЛИВО: Фільтруємо некоректні інгредієнти
+                # - Не повинен дублювати назву страви
+                # - Не повинен бути занадто схожим на назву
+                # - Не повинен містити слова типу "вино", "пиво" (це не інгредієнти)
+                skip_words = ['вино', 'пиво', 'віскі', 'коньяк', 'лікер', 'горілка', 'ром', 'джин', 'текіла', 'бренді']
+                
+                if ing_name and ing_name.lower() not in clean_name.lower():
+                    # Перевіряємо чи інгредієнт не єimport asyncio
 import logging
 import random
 import re
@@ -101,8 +114,8 @@ def generate_questions_from_poster():
     
     questions = []
     
-    # ID категорій бару
-    bar_category_ids = {9, 14, 27, 28, 34, 41, 42, 47, 22, 24, 25, 26, 39, 30}
+    # ID категорій бару (ТІЛЬКИ КОКТЕЙЛІ)
+    bar_category_ids = {34}  # Коктейлі
     
     # Генеруємо різні типи питань
     for product in products:
@@ -116,9 +129,34 @@ def generate_questions_from_poster():
         if product_name.strip().startswith('+'):
             continue
         
+        # ВАЖЛИВО: Очищуємо назву від ваги/об'єму для ВСІХ питань
+        # Видаляємо частини типу ", 250 мл", ", 1л", ", 100 г", "40 г" з назви
+        clean_name = re.sub(r',?\s*\d+[\.,]?\d*\s*(мл|л|г|кг)', '', product_name, flags=re.IGNORECASE)
+        clean_name = clean_name.strip().rstrip(',').strip()
+        
+        # Якщо після очищення назва дуже коротка або порожня - пропускаємо
+        if len(clean_name) < 3:
+            continue
+        
         # Ціна може бути числом або словником
         price_raw = product.get('price', 0)
         if isinstance(price_raw, dict):
+            price = 0
+        else:
+            try:
+                price = float(price_raw) / 100
+            except (ValueError, TypeError):
+                price = 0
+        
+        weight = product.get('out', '')
+        category_id = product.get('category_id')
+        
+        # Інгредієнти можуть бути списком або словником
+        ingredients_raw = product.get('ingredients', [])
+        if isinstance(ingredients_raw, list):
+            ingredients = ingredients_raw
+        else:
+            ingredients = []raw, dict):
             price = 0
         else:
             try:
