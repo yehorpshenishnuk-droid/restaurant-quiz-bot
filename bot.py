@@ -104,15 +104,31 @@ def generate_questions_from_poster():
     for product in products:
         product_name = product.get('product_name', '')
         
+        # ФІЛЬТРУЄМО: Пропускаємо модифікатори, доплати та незрозумілі продукти
+        if not product_name:
+            continue
+        
+        # Пропускаємо продукти що починаються з + (це доплати/додатки)
+        if product_name.strip().startswith('+'):
+            continue
+        
+        # Пропускаємо продукти з назвами менше 3 символів
+        if len(product_name.strip()) < 3:
+            continue
+        
         # Ціна може бути числом або словником
         price_raw = product.get('price', 0)
         if isinstance(price_raw, dict):
-            price = 0  # Якщо ціна - словник, пропускаємо
+            price = 0
         else:
             try:
                 price = float(price_raw) / 100
             except (ValueError, TypeError):
                 price = 0
+        
+        # Пропускаємо продукти з ціною 0 (це модифікатори)
+        if price <= 0:
+            continue
         
         weight = product.get('out', '')
         category_id = product.get('category_id')
@@ -123,9 +139,6 @@ def generate_questions_from_poster():
             ingredients = ingredients_raw
         else:
             ingredients = []
-        
-        if not product_name:
-            continue
         
         # 1. ПИТАННЯ ПРО ВАГУ (40% питань)
         if weight:
@@ -329,8 +342,9 @@ async def process_answer(message: types.Message, state: FSMContext):
     if elapsed_time > 10:
         return
     
-    correct_answer = questions[current]['answer'].strip().lower()
-    user_answer = message.text.strip().lower()
+    # ВАЖЛИВО: Конвертуємо обидві відповіді в строки та нижній регістр
+    correct_answer = str(questions[current]['answer']).strip().lower()
+    user_answer = str(message.text).strip().lower()
     
     if user_answer == correct_answer:
         correct_count += 1
