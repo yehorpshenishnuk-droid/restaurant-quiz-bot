@@ -175,16 +175,23 @@ def generate_questions_from_poster():
         
         # 2. ПИТАННЯ ПРО СКЛАД/ІНГРЕДІЄНТИ (40% питань)
         if ingredients and len(ingredients) > 0:
-            # Пропускаємо алкогольні напої без складних інгредієнтів (вино, пиво і т.д.)
-            skip_products = ['вино', 'пиво', 'віскі', 'коньяк', 'лікер', 'горілка', 'ром', 'джин', 'текіла', 'бренді', 'шампанське', 'просекко']
+            # Визначаємо чи це бар чи кухня
+            is_bar = category_id in bar_category_ids
+            
+            # Для бару залишаємо тільки коктейлі (категорія 34)
+            if is_bar and category_id != 34:
+                continue  # Пропускаємо все крім коктейлів в барі
+            
+            # Пропускаємо супи, борщі - там занадто багато інгредієнтів
+            skip_dishes = ['борщ', 'суп', 'солянка']
             should_skip = False
-            for skip_word in skip_products:
+            for skip_word in skip_dishes:
                 if skip_word in clean_name.lower():
                     should_skip = True
                     break
             
             if should_skip:
-                continue  # Пропускаємо це питання
+                continue
             
             # Перевіряємо що є нормальні інгредієнти (мінімум 2)
             valid_ingredient_names = []
@@ -195,7 +202,6 @@ def generate_questions_from_poster():
                     continue
                 
                 # КРИТИЧНО: Фільтруємо інгредієнти які схожі на назву страви
-                # Перевіряємо схожість: якщо 50%+ слів з інгредієнту є в назві - це дублікат
                 ing_words = set(ing_name.lower().split())
                 name_words = set(clean_name.lower().split())
                 
@@ -204,7 +210,7 @@ def generate_questions_from_poster():
                     common_words = ing_words & name_words
                     similarity = len(common_words) / len(ing_words)
                     
-                    if similarity > 0.5:  # Більше 50% схожості
+                    if similarity > 0.5:
                         continue
                 
                 # Також пропускаємо якщо інгредієнт повністю входить в назву
@@ -213,24 +219,22 @@ def generate_questions_from_poster():
                 
                 valid_ingredient_names.append(ing_name)
             
-            # Якщо менше 2 інгредієнтів - пропускаємо (не цікаве питання)
+            # Якщо менше 2 інгредієнтів - пропускаємо
             if len(valid_ingredient_names) < 2:
                 continue
             
             # Вибираємо випадковий інгредієнт
             real_ingredient = random.choice(valid_ingredient_names)
             
-            # Збираємо інгредієнти ТІЛЬКИ З ТОГО Ж ТИПУ (бар з баром, кухня з кухнею)
+            # ВАЖЛИВО: Збираємо інгредієнти ТІЛЬКИ З ТОГО Ж ТИПУ (бар/кухня)
             same_type_ingredients = set()
             
-            # Визначаємо чи це бар чи кухня
-            is_bar = category_id in bar_category_ids
-            
             for p in products:
-                # Беремо інгредієнти тільки з того ж типу (бар/кухня)
-                p_is_bar = p.get('category_id') in bar_category_ids
+                p_category = p.get('category_id')
+                p_is_bar = p_category in bar_category_ids
                 
-                if is_bar == p_is_bar:  # Обидва бар або обидва кухня
+                # Беремо тільки з того ж типу (обидва бар АБО обидва кухня)
+                if is_bar == p_is_bar:
                     if isinstance(p.get('ingredients'), list):
                         for ing in p['ingredients']:
                             ing_name = ing.get('ingredient_name', '')
