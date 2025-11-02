@@ -291,18 +291,14 @@ def generate_questions_from_poster():
             for p in products:
                 p_category = p.get('category_id')
                 
-                # Пропускаємо категорії не з білого списку
-                if p_category not in allowed_categories:
-                    continue
-                
                 # СТРОГА перевірка категорії
                 if is_bar_category:
                     # Якщо це коктейль - беремо інгредієнти ТІЛЬКИ з категорії 34
-                    if p_category not in bar_category_ids:
+                    if p_category != 34:
                         continue
                 else:
-                    # Якщо це кухня - беремо інгредієнти ТІЛЬКИ з кухонних категорій
-                    if p_category not in kitchen_category_ids:
+                    # Якщо це кухня - беремо інгредієнти ТІЛЬКИ НЕ з категорії 34
+                    if p_category == 34:
                         continue
                 
                 if isinstance(p.get('ingredients'), list):
@@ -390,7 +386,7 @@ def get_random_questions(count=15):
         count = len(QUESTIONS_DB)
     
     # Розділяємо питання на БАР (коктейлі) та КУХНЮ
-    bar_category_ids = {34}
+    bar_category_ids = {34}  # Тільки коктейлі
     
     bar_questions = [q for q in QUESTIONS_DB if q.get('category_id') in bar_category_ids]
     kitchen_questions = [q for q in QUESTIONS_DB if q.get('category_id') not in bar_category_ids]
