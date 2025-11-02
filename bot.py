@@ -107,6 +107,7 @@ def generate_questions_from_poster():
     # Генеруємо різні типи питань
     for product in products:
         product_name = product.get('product_name', '')
+        category_id = product.get('category_id')
         
         # ФІЛЬТРУЄМО: Пропускаємо порожні назви
         if not product_name or len(product_name.strip()) < 2:
@@ -117,15 +118,37 @@ def generate_questions_from_poster():
             continue
         
         # ВАЖЛИВО: Очищуємо назву від ваги/об'єму для ВСІХ питань
-        # Видаляємо частини типу ", 250 мл", ", 1л", ", 100 г", "40 г" з назви
         clean_name = re.sub(r',?\s*\d+[\.,]?\d*\s*(мл|л|г|кг)', '', product_name, flags=re.IGNORECASE)
         clean_name = clean_name.strip().rstrip(',').strip()
         
-        # Якщо після очищення назва дуже коротка або порожня - пропускаємо
+        # Якщо після очищення назва дуже коротка - пропускаємо
         if len(clean_name) < 3:
             continue
         
-        # Ціна може бути числом або словником
+        # КРИТИЧНО: Фільтруємо непотрібні продукти (соуси, хліб, сіки і т.д.)
+        skip_products = [
+            'соус', 'хліб', 'паста', 'булка', 'грінки', 'пампушки',
+            'сік', 'морс', 'лимонад', 'компот', 'узвар', 'вода',
+            'вино', 'пиво', 'віскі', 'коньяк', 'лікер', 'горілка', 
+            'ром', 'джин', 'текіла', 'бренді', 'шампанське', 'просекко'
+        ]
+        should_skip = False
+        for skip_word in skip_products:
+            if skip_word in clean_name.lower():
+                should_skip = True
+                break
+        
+        if should_skip:
+            continue
+        
+        # Визначаємо чи це бар чи кухня
+        is_bar = category_id in bar_category_ids
+        
+        # ДЛЯ БАРУ: тільки коктейлі (категорія 34)
+        if is_bar and category_id != 34:
+            continue  # Пропускаємо все крім коктейлів
+        
+        # Ціна
         price_raw = product.get('price', 0)
         if isinstance(price_raw, dict):
             price = 0
@@ -136,9 +159,8 @@ def generate_questions_from_poster():
                 price = 0
         
         weight = product.get('out', '')
-        category_id = product.get('category_id')
         
-        # Інгредієнти можуть бути списком або словником
+        # Інгредієнти
         ingredients_raw = product.get('ingredients', [])
         if isinstance(ingredients_raw, list):
             ingredients = ingredients_raw
@@ -175,22 +197,15 @@ def generate_questions_from_poster():
         
         # 2. ПИТАННЯ ПРО СКЛАД/ІНГРЕДІЄНТИ (40% питань)
         if ingredients and len(ingredients) > 0:
-            # Визначаємо чи це бар чи кухня
-            is_bar = category_id in bar_category_ids
-            
-            # Для бару залишаємо тільки коктейлі (категорія 34)
-            if is_bar and category_id != 34:
-                continue  # Пропускаємо все крім коктейлів в барі
-            
             # Пропускаємо супи, борщі - там занадто багато інгредієнтів
-            skip_dishes = ['борщ', 'суп', 'солянка']
-            should_skip = False
+            skip_dishes = ['борщ', 'суп', 'солянка', 'крем-суп']
+            should_skip_dish = False
             for skip_word in skip_dishes:
                 if skip_word in clean_name.lower():
-                    should_skip = True
+                    should_skip_dish = True
                     break
             
-            if should_skip:
+            if should_skip_dish:
                 continue
             
             # Перевіряємо що є нормальні інгредієнти (мінімум 2)
@@ -201,11 +216,10 @@ def generate_questions_from_poster():
                 if not ing_name or len(ing_name) < 3:
                     continue
                 
-                # КРИТИЧНО: Фільтруємо інгредієнти які схожі на назву страви
+                # Фільтруємо інгредієнти які схожі на назву страви
                 ing_words = set(ing_name.lower().split())
                 name_words = set(clean_name.lower().split())
                 
-                # Якщо більше половини слів інгредієнту є в назві - пропускаємо
                 if len(ing_words) > 0:
                     common_words = ing_words & name_words
                     similarity = len(common_words) / len(ing_words)
@@ -213,7 +227,6 @@ def generate_questions_from_poster():
                     if similarity > 0.5:
                         continue
                 
-                # Також пропускаємо якщо інгредієнт повністю входить в назву
                 if ing_name.lower() in clean_name.lower():
                     continue
                 
@@ -226,20 +239,31 @@ def generate_questions_from_poster():
             # Вибираємо випадковий інгредієнт
             real_ingredient = random.choice(valid_ingredient_names)
             
-            # ВАЖЛИВО: Збираємо інгредієнти ТІЛЬКИ З ТОГО Ж ТИПУ (бар/кухня)
+            # КРИТИЧНО: Збираємо інгредієнти ТІЛЬКИ З ТОГО Ж ТИПУ
+            # Для бару - тільки з коктейлів (категорія 34)
+            # Для кухні - тільки з кухні (всі крім 34)
             same_type_ingredients = set()
             
             for p in products:
                 p_category = p.get('category_id')
-                p_is_bar = p_category in bar_category_ids
+                p_name = p.get('product_name', '')
                 
-                # Беремо тільки з того ж типу (обидва бар АБО обидва кухня)
-                if is_bar == p_is_bar:
-                    if isinstance(p.get('ingredients'), list):
-                        for ing in p['ingredients']:
-                            ing_name = ing.get('ingredient_name', '')
-                            if ing_name and ing_name != real_ingredient and len(ing_name) > 2:
-                                same_type_ingredients.add(ing_name)
+                # Для бару: беремо інгредієнти ТІЛЬКИ з коктейлів (34)
+                # Для кухні: беремо інгредієнти з усіх категорій КРІМ 34
+                if is_bar:
+                    # Якщо це бар - беремо тільки з категорії 34
+                    if p_category != 34:
+                        continue
+                else:
+                    # Якщо це кухня - беремо з усіх крім 34
+                    if p_category == 34:
+                        continue
+                
+                if isinstance(p.get('ingredients'), list):
+                    for ing in p['ingredients']:
+                        ing_name = ing.get('ingredient_name', '')
+                        if ing_name and ing_name != real_ingredient and len(ing_name) > 2:
+                            same_type_ingredients.add(ing_name)
             
             # Видаляємо правильну відповідь зі списку
             same_type_ingredients.discard(real_ingredient)
