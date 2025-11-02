@@ -1,17 +1,4 @@
-# 2. ПИТАННЯ ПРО СКЛАД/ІНГРЕДІЄНТИ (40% питань)
-        if ingredients and len(ingredients) > 0:
-            # Вибираємо випадковий інгредієнт з цієї страви
-            ingredient_names = []
-            for ing in ingredients:
-                ing_name = ing.get('ingredient_name', '')
-                # ВАЖЛИВО: Фільтруємо некоректні інгредієнти
-                # - Не повинен дублювати назву страви
-                # - Не повинен бути занадто схожим на назву
-                # - Не повинен містити слова типу "вино", "пиво" (це не інгредієнти)
-                skip_words = ['вино', 'пиво', 'віскі', 'коньяк', 'лікер', 'горілка', 'ром', 'джин', 'текіла', 'бренді']
-                
-                if ing_name and ing_name.lower() not in clean_name.lower():
-                    # Перевіряємо чи інгредієнт не єimport asyncio
+import asyncio
 import logging
 import random
 import re
@@ -156,65 +143,119 @@ def generate_questions_from_poster():
         if isinstance(ingredients_raw, list):
             ingredients = ingredients_raw
         else:
-            ingredients = []raw, dict):
-            price = 0
-        else:
-            try:
-                price = float(price_raw) / 100
-            except (ValueError, TypeError):
-                price = 0
-        
-        weight = product.get('out', '')
-        category_id = product.get('category_id')
-        
-        # Інгредієнти можуть бути списком або словником
-        ingredients_raw = product.get('ingredients', [])
-        if isinstance(ingredients_raw, list):
-            ingredients = ingredients_raw
-        else:
             ingredients = []
         
         # 1. ПИТАННЯ ПРО ВАГУ (40% питань)
         if weight:
-            other_weights = [p.get('out', '') for p in products if p.get('out') and p['product_id'] != product['product_id']]
+            # Конвертуємо вагу в строку
+            weight_str = str(weight)
+            
+            # Беремо інші продукти для неправильних варіантів
+            other_weights = [str(p.get('out', '')) for p in products if p.get('out') and p['product_id'] != product['product_id']]
             if len(other_weights) >= 3:
-                wrong_weights = random.sample([w for w in other_weights if w != weight], 3)
-                options = [weight] + wrong_weights
-                random.shuffle(options)
+                # Вибираємо тільки унікальні варіанти
+                wrong_weights = []
+                for w in other_weights:
+                    if w != weight_str and w not in wrong_weights:
+                        wrong_weights.append(w)
+                    if len(wrong_weights) == 3:
+                        break
                 
-                questions.append({
-                    "question": f"Яка вага/об'єм страви '{product_name}'?",
-                    "options": options,
-                    "answer": weight,
-                    "category": "weight"
-                })
-        
-        # 2. ПИТАННЯ ПРО СКЛАД/ІНГРЕДІЄНТИ (40% питань)
-        if ingredients and len(ingredients) > 0:
-            real_ingredient = random.choice(ingredients).get('ingredient_name', '')
-            if real_ingredient:
-                all_ingredients = set()
-                for p in products:
-                    for ing in p.get('ingredients', []):
-                        ing_name = ing.get('ingredient_name', '')
-                        if ing_name:
-                            all_ingredients.add(ing_name)
-                
-                all_ingredients.discard(real_ingredient)
-                if len(all_ingredients) >= 3:
-                    wrong_ingredients = random.sample(list(all_ingredients), 3)
-                    options = [real_ingredient] + wrong_ingredients
+                if len(wrong_weights) == 3:
+                    options = [weight_str] + wrong_weights
                     random.shuffle(options)
                     
                     questions.append({
-                        "question": f"Який інгредієнт входить до складу '{product_name}'?",
+                        "question": f"Яка вага/об'єм страви '{clean_name}'?",
                         "options": options,
-                        "answer": real_ingredient,
-                        "category": "ingredients"
+                        "answer": weight_str,
+                        "category": "weight",
+                        "category_id": category_id
                     })
         
-        # 3. ПИТАННЯ ПРО ЦІНУ (20% питань)
-        if price > 0 and random.random() < 0.5:
+        # 2. ПИТАННЯ ПРО СКЛАД/ІНГРЕДІЄНТИ (40% питань)
+        if ingredients and len(ingredients) > 0:
+            # Пропускаємо алкогольні напої без складних інгредієнтів (вино, пиво і т.д.)
+            skip_products = ['вино', 'пиво', 'віскі', 'коньяк', 'лікер', 'горілка', 'ром', 'джин', 'текіла', 'бренді', 'шампанське', 'просекко']
+            should_skip = False
+            for skip_word in skip_products:
+                if skip_word in clean_name.lower():
+                    should_skip = True
+                    break
+            
+            if should_skip:
+                continue  # Пропускаємо це питання
+            
+            # Перевіряємо що є нормальні інгредієнти (мінімум 2)
+            valid_ingredient_names = []
+            for ing in ingredients:
+                ing_name = ing.get('ingredient_name', '')
+                
+                if not ing_name or len(ing_name) < 3:
+                    continue
+                
+                # КРИТИЧНО: Фільтруємо інгредієнти які схожі на назву страви
+                # Перевіряємо схожість: якщо 50%+ слів з інгредієнту є в назві - це дублікат
+                ing_words = set(ing_name.lower().split())
+                name_words = set(clean_name.lower().split())
+                
+                # Якщо більше половини слів інгредієнту є в назві - пропускаємо
+                if len(ing_words) > 0:
+                    common_words = ing_words & name_words
+                    similarity = len(common_words) / len(ing_words)
+                    
+                    if similarity > 0.5:  # Більше 50% схожості
+                        continue
+                
+                # Також пропускаємо якщо інгредієнт повністю входить в назву
+                if ing_name.lower() in clean_name.lower():
+                    continue
+                
+                valid_ingredient_names.append(ing_name)
+            
+            # Якщо менше 2 інгредієнтів - пропускаємо (не цікаве питання)
+            if len(valid_ingredient_names) < 2:
+                continue
+            
+            # Вибираємо випадковий інгредієнт
+            real_ingredient = random.choice(valid_ingredient_names)
+            
+            # Збираємо інгредієнти ТІЛЬКИ З ТОГО Ж ТИПУ (бар з баром, кухня з кухнею)
+            same_type_ingredients = set()
+            
+            # Визначаємо чи це бар чи кухня
+            is_bar = category_id in bar_category_ids
+            
+            for p in products:
+                # Беремо інгредієнти тільки з того ж типу (бар/кухня)
+                p_is_bar = p.get('category_id') in bar_category_ids
+                
+                if is_bar == p_is_bar:  # Обидва бар або обидва кухня
+                    if isinstance(p.get('ingredients'), list):
+                        for ing in p['ingredients']:
+                            ing_name = ing.get('ingredient_name', '')
+                            if ing_name and ing_name != real_ingredient and len(ing_name) > 2:
+                                same_type_ingredients.add(ing_name)
+            
+            # Видаляємо правильну відповідь зі списку
+            same_type_ingredients.discard(real_ingredient)
+            
+            if len(same_type_ingredients) >= 3:
+                wrong_ingredients = random.sample(list(same_type_ingredients), 3)
+                options = [real_ingredient] + wrong_ingredients
+                random.shuffle(options)
+                
+                questions.append({
+                    "question": f"Який інгредієнт входить до складу '{clean_name}'?",
+                    "options": options,
+                    "answer": real_ingredient,
+                    "category": "ingredients",
+                    "category_id": category_id
+                })
+        
+        # 3. ПИТАННЯ ПРО ЦІНУ (20% питань) - менше ніж раніше
+        if price > 0 and random.random() < 0.5:  # Генеруємо тільки для 50% страв
+            # Створюємо правдоподібні неправильні ціни
             wrong_prices = [
                 f"{int(price * 0.8)}₴",
                 f"{int(price * 1.2)}₴",
@@ -225,10 +266,11 @@ def generate_questions_from_poster():
             random.shuffle(options)
             
             questions.append({
-                "question": f"Скільки коштує '{product_name}'?",
+                "question": f"Скільки коштує '{clean_name}'?",
                 "options": options,
                 "answer": correct_price,
-                "category": "price"
+                "category": "price",
+                "category_id": category_id
             })
     
     QUESTIONS_DB = questions
@@ -268,10 +310,41 @@ def save_result_to_sheet(username, first_name, correct, total, percentage):
 
 # ==================== КВІЗ ====================
 
+# Отримання випадкових питань з балансом між категоріями
 def get_random_questions(count=15):
     if len(QUESTIONS_DB) < count:
         count = len(QUESTIONS_DB)
-    return random.sample(QUESTIONS_DB, count)
+    
+    # Розділяємо питання на БАР (коктейлі) та КУХНЮ
+    bar_category_ids = {34}  # Тільки коктейлі
+    
+    bar_questions = [q for q in QUESTIONS_DB if q.get('category_id') in bar_category_ids]
+    kitchen_questions = [q for q in QUESTIONS_DB if q.get('category_id') not in bar_category_ids]
+    
+    # Беремо 3 питання з бару та 12 з кухні
+    selected_questions = []
+    
+    # 3 питання про бар
+    if len(bar_questions) >= 3:
+        selected_questions.extend(random.sample(bar_questions, 3))
+    else:
+        selected_questions.extend(bar_questions)
+    
+    # 12 питань про кухню (або скільки залишилось)
+    remaining = count - len(selected_questions)
+    if len(kitchen_questions) >= remaining:
+        selected_questions.extend(random.sample(kitchen_questions, remaining))
+    else:
+        selected_questions.extend(kitchen_questions)
+        # Якщо не вистачає, додаємо з бару
+        still_needed = count - len(selected_questions)
+        if still_needed > 0 and len(bar_questions) > 3:
+            selected_questions.extend(random.sample([q for q in bar_questions if q not in selected_questions], min(still_needed, len(bar_questions) - 3)))
+    
+    # Перемішуємо питання
+    random.shuffle(selected_questions)
+    
+    return selected_questions
 
 @dp.message(Command("start"))
 async def start_command(message: types.Message, state: FSMContext):
