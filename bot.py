@@ -101,13 +101,26 @@ def generate_questions_from_poster():
     
     questions = []
     
-    # ID категорій бару (ТІЛЬКИ КОКТЕЙЛІ - КАТЕГОРІЯ 34!)
-    bar_category_ids = {34}  # Коктейлі
+    # БІЛИЙ СПИСОК категорій для питань
+    # БАР (коктейлі)
+    bar_category_ids = {34}
+    
+    # КУХНЯ (холодні + гарячі)
+    cold_category_ids = {7, 8, 11, 16, 18, 19, 29, 32, 36, 44}
+    hot_category_ids = {4, 13, 15, 46, 33}
+    kitchen_category_ids = cold_category_ids | hot_category_ids
+    
+    # Всі дозволені категорії
+    allowed_categories = bar_category_ids | kitchen_category_ids
     
     # Генеруємо різні типи питань
     for product in products:
         product_name = product.get('product_name', '')
         category_id = product.get('category_id')
+        
+        # КРИТИЧНО: Пропускаємо всі категорії які НЕ в білому списку
+        if category_id not in allowed_categories:
+            continue
         
         # ФІЛЬТРУЄМО: Пропускаємо порожні назви
         if not product_name or len(product_name.strip()) < 2:
@@ -117,8 +130,8 @@ def generate_questions_from_poster():
         if product_name.strip().startswith('+'):
             continue
         
-        # Визначаємо тип: БАР (тільки 34) або КУХНЯ (все інше)
-        is_bar_category = (category_id == 34)
+        # Визначаємо тип: БАР (34) або КУХНЯ (інші дозволені)
+        is_bar_category = (category_id in bar_category_ids)
         
         # ВАЖЛИВО: Очищуємо назву від ваги/об'єму
         clean_name = re.sub(r',?\s*\d+[\.,]?\d*\s*(мл|л|г|кг)', '', product_name, flags=re.IGNORECASE)
@@ -278,14 +291,18 @@ def generate_questions_from_poster():
             for p in products:
                 p_category = p.get('category_id')
                 
+                # Пропускаємо категорії не з білого списку
+                if p_category not in allowed_categories:
+                    continue
+                
                 # СТРОГА перевірка категорії
                 if is_bar_category:
                     # Якщо це коктейль - беремо інгредієнти ТІЛЬКИ з категорії 34
-                    if p_category != 34:
+                    if p_category not in bar_category_ids:
                         continue
                 else:
-                    # Якщо це кухня - беремо інгредієнти ТІЛЬКИ НЕ з категорії 34
-                    if p_category == 34:
+                    # Якщо це кухня - беремо інгредієнти ТІЛЬКИ з кухонних категорій
+                    if p_category not in kitchen_category_ids:
                         continue
                 
                 if isinstance(p.get('ingredients'), list):
@@ -373,7 +390,7 @@ def get_random_questions(count=15):
         count = len(QUESTIONS_DB)
     
     # Розділяємо питання на БАР (коктейлі) та КУХНЮ
-    bar_category_ids = {34}  # Тільки коктейлі
+    bar_category_ids = {34}
     
     bar_questions = [q for q in QUESTIONS_DB if q.get('category_id') in bar_category_ids]
     kitchen_questions = [q for q in QUESTIONS_DB if q.get('category_id') not in bar_category_ids]
