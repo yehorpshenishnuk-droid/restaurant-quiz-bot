@@ -101,7 +101,7 @@ def generate_questions_from_poster():
     
     questions = []
     
-    # ID категорій бару (ТІЛЬКИ КОКТЕЙЛІ)
+    # ID категорій бару (ТІЛЬКИ КОКТЕЙЛІ - КАТЕГОРІЯ 34!)
     bar_category_ids = {34}  # Коктейлі
     
     # Генеруємо різні типи питань
@@ -117,7 +117,10 @@ def generate_questions_from_poster():
         if product_name.strip().startswith('+'):
             continue
         
-        # ВАЖЛИВО: Очищуємо назву від ваги/об'єму для ВСІХ питань
+        # Визначаємо тип: БАР (тільки 34) або КУХНЯ (все інше)
+        is_bar_category = (category_id == 34)
+        
+        # ВАЖЛИВО: Очищуємо назву від ваги/об'єму
         clean_name = re.sub(r',?\s*\d+[\.,]?\d*\s*(мл|л|г|кг)', '', product_name, flags=re.IGNORECASE)
         clean_name = clean_name.strip().rstrip(',').strip()
         
@@ -125,28 +128,38 @@ def generate_questions_from_poster():
         if len(clean_name) < 3:
             continue
         
-        # КРИТИЧНО: Фільтруємо непотрібні продукти (соуси, хліб, сіки і т.д.)
-        skip_products = [
-            'соус', 'хліб', 'паста', 'булка', 'грінки', 'пампушки',
-            'сік', 'морс', 'лимонад', 'компот', 'узвар', 'вода',
-            'вино', 'пиво', 'віскі', 'коньяк', 'лікер', 'горілка', 
-            'ром', 'джин', 'текіла', 'бренді', 'шампанське', 'просекко'
-        ]
-        should_skip = False
-        for skip_word in skip_products:
-            if skip_word in clean_name.lower():
-                should_skip = True
-                break
+        # КРИТИЧНО: Фільтруємо непотрібні продукти
+        # Для КУХНІ пропускаємо:
+        if not is_bar_category:
+            skip_kitchen = [
+                'соус', 'хліб', 'паста', 'булка', 'грінки', 'пампушки',
+                'сік', 'морс', 'лимонад', 'компот', 'узвар', 'вода', 'айран'
+            ]
+            should_skip = False
+            for skip_word in skip_kitchen:
+                if skip_word in clean_name.lower():
+                    should_skip = True
+                    break
+            
+            if should_skip:
+                continue
         
-        if should_skip:
-            continue
-        
-        # Визначаємо чи це бар чи кухня
-        is_bar = category_id in bar_category_ids
-        
-        # ДЛЯ БАРУ: тільки коктейлі (категорія 34)
-        if is_bar and category_id != 34:
-            continue  # Пропускаємо все крім коктейлів
+        # Для БАРУ: перевіряємо що це справді коктейль (не алкоголь)
+        if is_bar_category:
+            # Пропускаємо чистий алкоголь (це не коктейлі)
+            skip_bar = [
+                'вино', 'пиво', 'віскі', 'коньяк', 'лікер', 'горілка',
+                'ром', 'джин', 'текіла', 'бренді', 'шампанське', 'просекко',
+                'мартіні вермут', 'кампарі', 'бейліс'
+            ]
+            should_skip = False
+            for skip_word in skip_bar:
+                if skip_word in clean_name.lower():
+                    should_skip = True
+                    break
+            
+            if should_skip:
+                continue
         
         # Ціна
         price_raw = product.get('price', 0)
@@ -169,31 +182,43 @@ def generate_questions_from_poster():
         
         # 1. ПИТАННЯ ПРО ВАГУ (40% питань)
         if weight:
-            # Конвертуємо вагу в строку
-            weight_str = str(weight)
+            # Пропускаємо соуси, хліб, пампушки - не цікаво питати про їх вагу
+            skip_weight_products = ['соус', 'хліб', 'пампушка', 'грінки']
+            should_skip_weight = False
+            for skip_word in skip_weight_products:
+                if skip_word in clean_name.lower():
+                    should_skip_weight = True
+                    break
             
-            # Беремо інші продукти для неправильних варіантів
-            other_weights = [str(p.get('out', '')) for p in products if p.get('out') and p['product_id'] != product['product_id']]
-            if len(other_weights) >= 3:
-                # Вибираємо тільки унікальні варіанти
-                wrong_weights = []
-                for w in other_weights:
-                    if w != weight_str and w not in wrong_weights:
-                        wrong_weights.append(w)
-                    if len(wrong_weights) == 3:
-                        break
+            if should_skip_weight:
+                # Переходимо до наступного типу питань (не генеруємо питання про вагу)
+                pass
+            else:
+                # Конвертуємо вагу в строку
+                weight_str = str(weight)
                 
-                if len(wrong_weights) == 3:
-                    options = [weight_str] + wrong_weights
-                    random.shuffle(options)
+                # Беремо інші продукти для неправильних варіантів
+                other_weights = [str(p.get('out', '')) for p in products if p.get('out') and p['product_id'] != product['product_id']]
+                if len(other_weights) >= 3:
+                    # Вибираємо тільки унікальні варіанти
+                    wrong_weights = []
+                    for w in other_weights:
+                        if w != weight_str and w not in wrong_weights:
+                            wrong_weights.append(w)
+                        if len(wrong_weights) == 3:
+                            break
                     
-                    questions.append({
-                        "question": f"Яка вага/об'єм страви '{clean_name}'?",
-                        "options": options,
-                        "answer": weight_str,
-                        "category": "weight",
-                        "category_id": category_id
-                    })
+                    if len(wrong_weights) == 3:
+                        options = [weight_str] + wrong_weights
+                        random.shuffle(options)
+                        
+                        questions.append({
+                            "question": f"Яка вага/об'єм страви '{clean_name}'?",
+                            "options": options,
+                            "answer": weight_str,
+                            "category": "weight",
+                            "category_id": category_id
+                        })
         
         # 2. ПИТАННЯ ПРО СКЛАД/ІНГРЕДІЄНТИ (40% питань)
         if ingredients and len(ingredients) > 0:
@@ -239,23 +264,21 @@ def generate_questions_from_poster():
             # Вибираємо випадковий інгредієнт
             real_ingredient = random.choice(valid_ingredient_names)
             
-            # КРИТИЧНО: Збираємо інгредієнти ТІЛЬКИ З ТОГО Ж ТИПУ
-            # Для бару - тільки з коктейлів (категорія 34)
-            # Для кухні - тільки з кухні (всі крім 34)
+            # КРИТИЧНО: Збираємо інгредієнти СТРОГО З ТОГО Ж ТИПУ
+            # БАР (34) → інгредієнти ТІЛЬКИ з категорії 34
+            # КУХНЯ (не 34) → інгредієнти ТІЛЬКИ з категорій НЕ 34
             same_type_ingredients = set()
             
             for p in products:
                 p_category = p.get('category_id')
-                p_name = p.get('product_name', '')
                 
-                # Для бару: беремо інгредієнти ТІЛЬКИ з коктейлів (34)
-                # Для кухні: беремо інгредієнти з усіх категорій КРІМ 34
-                if is_bar:
-                    # Якщо це бар - беремо тільки з категорії 34
+                # СТРОГА перевірка категорії
+                if is_bar_category:
+                    # Якщо це коктейль - беремо інгредієнти ТІЛЬКИ з категорії 34
                     if p_category != 34:
                         continue
                 else:
-                    # Якщо це кухня - беремо з усіх крім 34
+                    # Якщо це кухня - беремо інгредієнти ТІЛЬКИ НЕ з категорії 34
                     if p_category == 34:
                         continue
                 
