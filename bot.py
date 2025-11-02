@@ -113,6 +113,26 @@ def generate_questions_from_poster():
     # Всі дозволені категорії
     allowed_categories = bar_category_ids | kitchen_category_ids
     
+    # ЧОРНИЙ СПИСОК - слова які НЕ повинні бути в питаннях
+    blacklist_words = [
+        # Соуси та добавки
+        'соус', 'кетчуп', 'майонез', 'гірчиця', 'хрін',
+        # Хліб та випічка
+        'хліб', 'булка', 'грінки', 'пампушка',
+        # Кава (це не коктейлі!)
+        'кава', 'еспресо', 'капучино', 'латте', 'американо', 'флет', 'раф', 'какао',
+        # Чай
+        'чай',
+        # Алкоголь (не коктейлі)
+        'вино', 'пиво', 'віскі', 'коньяк', 'горілка', 'ром', 'джин', 'текіла', 'бренді',
+        'шампанське', 'просекко', 'мартіні вермут', 'лікер', 'кампарі', 'бейліс',
+        # Соки та напої (не коктейлі)
+        'сік', 'морс', 'лимонад', 'компот', 'узвар', 'вода', 'айран',
+        # Інгредієнти та начинки (не страви!)
+        'начинка', 'сумiш', 'суміш', 'топінг', 'сироп', 'пюре', 'monin',
+        'кава зерно', 'молоко', 'вершки', 'масло', 'олія', 'цукор', 'сіль'
+    ]
+    
     # Генеруємо різні типи питань
     for product in products:
         product_name = product.get('product_name', '')
@@ -128,6 +148,17 @@ def generate_questions_from_poster():
         
         # Пропускаємо продукти що починаються з + (це доплати/додатки)
         if product_name.strip().startswith('+'):
+            continue
+        
+        # ЧОРНИЙ СПИСОК: Пропускаємо продукти з заборонених слів
+        should_skip = False
+        product_name_lower = product_name.lower()
+        for blacklist_word in blacklist_words:
+            if blacklist_word in product_name_lower:
+                should_skip = True
+                break
+        
+        if should_skip:
             continue
         
         # Визначаємо тип: БАР (34) або КУХНЯ (інші дозволені)
@@ -291,14 +322,18 @@ def generate_questions_from_poster():
             for p in products:
                 p_category = p.get('category_id')
                 
+                # Пропускаємо категорії не з білого списку
+                if p_category not in allowed_categories:
+                    continue
+                
                 # СТРОГА перевірка категорії
                 if is_bar_category:
                     # Якщо це коктейль - беремо інгредієнти ТІЛЬКИ з категорії 34
-                    if p_category != 34:
+                    if p_category not in bar_category_ids:
                         continue
                 else:
-                    # Якщо це кухня - беремо інгредієнти ТІЛЬКИ НЕ з категорії 34
-                    if p_category == 34:
+                    # Якщо це кухня - беремо інгредієнти ТІЛЬКИ з кухонних категорій
+                    if p_category not in kitchen_category_ids:
                         continue
                 
                 if isinstance(p.get('ingredients'), list):
@@ -386,7 +421,7 @@ def get_random_questions(count=15):
         count = len(QUESTIONS_DB)
     
     # Розділяємо питання на БАР (коктейлі) та КУХНЮ
-    bar_category_ids = {34}  # Тільки коктейлі
+    bar_category_ids = {34}
     
     bar_questions = [q for q in QUESTIONS_DB if q.get('category_id') in bar_category_ids]
     kitchen_questions = [q for q in QUESTIONS_DB if q.get('category_id') not in bar_category_ids]
