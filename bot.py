@@ -24,8 +24,6 @@ POSTER_ACCOUNT = os.getenv("POSTER_ACCOUNT", "poka-net3")
 
 if not TOKEN:
     raise ValueError("TELEGRAM_TOKEN not found!")
-if not SPREADSHEET_ID:
-    raise ValueError("SHEET_ID not found!")
 if not POSTER_TOKEN:
     raise ValueError("POSTER_TOKEN not found!")
 
@@ -45,6 +43,167 @@ dp = Dispatcher(storage=storage)
 
 # Глобальна база питань
 QUESTIONS_DB = []
+
+# ==================== МЕНЮ ДЛЯ ОФІЦІАНТІВ ====================
+
+RESTAURANT_MENU = {
+    "Плов який Ви полюбите": {
+        "price": 169,
+        "weight": "310 г",
+        "description": "Плов, приготований у казані за старовинним рецептом з яловичиною та бараниною",
+        "category": "Основні страви"
+    },
+    "Пельмені як мають бути з телятиною": {
+        "price": 169,
+        "weight": "310 г",
+        "description": "Соковиті пельмені з телятиною, домашня технологія",
+        "category": "Основні страви"
+    },
+    "Пельмені з філе курки": {
+        "price": 169,
+        "weight": "265 г",
+        "description": "Соковиті пельмені з куркою, домашня технологія",
+        "category": "Основні страви"
+    },
+    "Фрикадельки з індички у вершковому соусі з картопляним пюре": {
+        "price": 219,
+        "weight": "300 г",
+        "description": "Ніжні фрикадельки з індички у вершковому соусі",
+        "category": "Дитяче меню"
+    },
+    "Телячі щічки з вершковим пюре": {
+        "price": 369,
+        "weight": "370 г",
+        "description": "Телячі щічки томлені 24 години у винно-овочевому соусі",
+        "category": "Основні страви"
+    },
+    "Салат Цезар": {
+        "price": 239,
+        "weight": "300 г",
+        "description": "Курка на грилі, бекон, салат, помідори, пармезан, перепелині яйця",
+        "category": "Салати"
+    },
+    "Грецький салат": {
+        "price": 199,
+        "weight": "300 г",
+        "description": "Помідори, огірки, оливки, фета, болгарський перець",
+        "category": "Салати"
+    },
+    "Теплий салат з телятиною": {
+        "price": 229,
+        "weight": "260 г",
+        "description": "Телятина на грилі, фрілліс, рукола, томати, болгарський перець",
+        "category": "Салати"
+    },
+    "Овочевий салат з горіховою заправкою": {
+        "price": 169,
+        "weight": "300 г",
+        "description": "Помідори, огірки, цибуля маринована, горіховий соус",
+        "category": "Салати"
+    },
+    "Салат з запеченими овочами": {
+        "price": 179,
+        "weight": "310 г",
+        "description": "Запечені баклажани, перець, цибуля, томат",
+        "category": "Салати"
+    },
+    "Салат з хамоном та карамелізованою грушею": {
+        "price": 259,
+        "weight": "200 г",
+        "description": "Хамон, карамелізована груша, Дор Блю, рукола, грецькі горіхи",
+        "category": "Салати"
+    },
+    "Гарячий борщ": {
+        "price": 179,
+        "weight": "460 г",
+        "description": "Український борщ зі сметаною та пампушками",
+        "category": "Супи"
+    },
+    "Суп Вушка": {
+        "price": 119,
+        "weight": "320 г",
+        "description": "Дрібні пельмені зі свининою в курячому бульйоні",
+        "category": "Супи"
+    },
+    "Вершковий грибний крем-суп": {
+        "price": 159,
+        "weight": "310 г",
+        "description": "Крем-суп з печериць на вершках з грінками",
+        "category": "Супи"
+    },
+    "М'ясна солянка": {
+        "price": 169,
+        "weight": "310 г",
+        "description": "М'ясний бульйон з копченостями та ковбасами",
+        "category": "Супи"
+    },
+    "Крем-суп гарбузовий з беконом": {
+        "price": 159,
+        "weight": "310 г",
+        "description": "Мускатний гарбуз з вершками та хрустким беконом",
+        "category": "Супи"
+    },
+    "Картопля Фрі з соусами": {
+        "price": 79,
+        "weight": "140 г",
+        "description": "Хрустка картопля з соусом на вибір",
+        "category": "Закуски"
+    },
+    "Батат фрі з соусом цезар та пармезаном": {
+        "price": 139,
+        "weight": "155 г",
+        "description": "Батат фрі з соусом цезар та пармезаном",
+        "category": "Закуски"
+    },
+    "Стріпси з філе молодої курки": {
+        "price": 129,
+        "weight": "150 г",
+        "description": "Хрустка курка з соусом на вибір",
+        "category": "Закуски"
+    },
+    "Жульєн зі скоринкою Чедер": {
+        "price": 139,
+        "weight": "150 г",
+        "description": "М'ясо птиці, печериці, вершковий соус, Чедер",
+        "category": "Закуски"
+    },
+    "Люля-кебаб з трьома видами м'яса": {
+        "price": 189,
+        "weight": "260 г",
+        "description": "Яловичина, свинина, курка з цибулею та спеціями",
+        "category": "Гриль"
+    },
+    "Філе молодої курки": {
+        "price": 249,
+        "weight": "360 г",
+        "description": "Мариноване філе фермерської курки на грилі",
+        "category": "Гриль"
+    },
+    "Телятина на грилі": {
+        "price": 339,
+        "weight": "360 г",
+        "description": "Соковита телятина, прожарювання Medium",
+        "category": "Гриль"
+    },
+    "Шийна частина свинини": {
+        "price": 329,
+        "weight": "410 г",
+        "description": "Мариноване м'ясо з маринованою цибулею",
+        "category": "Гриль"
+    },
+    "Деруни зі сметаною": {
+        "price": 99,
+        "weight": "240 г",
+        "description": "Хрусткі картопляні оладки зі сметаною",
+        "category": "Деруни"
+    },
+    "Деруни з вершковим соусом та грибами": {
+        "price": 119,
+        "weight": "230 г",
+        "description": "Деруни з грибами, вершковим соусом та пармезаном",
+        "category": "Деруни"
+    }
+}
 
 # ==================== POSTER API ====================
 
@@ -86,277 +245,258 @@ def get_poster_products():
         logging.error(f"Error loading products: {e}")
         return []
 
+def get_techcard_categories():
+    """Знайти ID категорій 'Тех. картки' та 'Напівфабрикати'"""
+    categories = get_poster_categories()
+    techcard_ids = set()
+    
+    for cat_id, cat_name in categories.items():
+        # Шукаємо категорії за ключовими словами
+        cat_name_lower = cat_name.lower()
+        if any(keyword in cat_name_lower for keyword in ['тех', 'картк', 'напів', 'фабрикат']):
+            techcard_ids.add(cat_id)
+            logging.info(f"Found tech card category: {cat_name} (ID: {cat_id})")
+    
+    return techcard_ids
+
+# ==================== ЗІСТАВЛЕННЯ МЕНЮ З ТЕХ.КАРТКАМИ ====================
+
+def normalize_dish_name(name):
+    """Нормалізує назву страви для зіставлення"""
+    # Видаляємо вагу, об'єм
+    name = re.sub(r',?\s*\d+[\.,]?\d*\s*(мл|л|г|кг)', '', name, flags=re.IGNORECASE)
+    # Видаляємо зайві слова
+    name = name.lower().strip()
+    # Видаляємо розділові знаки
+    name = re.sub(r'[^\w\s]', '', name)
+    return name
+
+def find_dish_in_techcards(dish_name, techcard_products):
+    """Знаходить страву в тех.картках"""
+    normalized_dish = normalize_dish_name(dish_name)
+    
+    for product in techcard_products:
+        product_name = product.get('product_name', '')
+        normalized_product = normalize_dish_name(product_name)
+        
+        # Перевіряємо схожість назв
+        if normalized_dish in normalized_product or normalized_product in normalized_dish:
+            return product
+        
+        # Перевіряємо по ключових словах
+        dish_words = set(normalized_dish.split())
+        product_words = set(normalized_product.split())
+        common_words = dish_words & product_words
+        
+        # Якщо більше 60% слів співпадають - це наша страва
+        if len(common_words) > 0 and len(dish_words) > 0:
+            similarity = len(common_words) / len(dish_words)
+            if similarity >= 0.6:
+                return product
+    
+    return None
+
 # ==================== ГЕНЕРАЦІЯ ПИТАНЬ ====================
 
-def generate_questions_from_poster():
-    """Генерує питання на основі меню з Poster"""
+def generate_questions_from_menu_and_techcards():
+    """Генерує питання з меню офіціанта та тех.карток Poster"""
     global QUESTIONS_DB
     
-    categories = get_poster_categories()
-    products = get_poster_products()
-    
-    if not products:
-        logging.error("No products loaded from Poster!")
+    # Отримуємо продукти з тех.карток
+    techcard_cat_ids = get_techcard_categories()
+    if not techcard_cat_ids:
+        logging.error("No tech card categories found!")
         return
+    
+    all_products = get_poster_products()
+    techcard_products = [p for p in all_products if p.get('category_id') in techcard_cat_ids]
+    
+    logging.info(f"Found {len(techcard_products)} products in tech cards")
     
     questions = []
     
-    # ID категорій бару (ТІЛЬКИ КОКТЕЙЛІ)
-    bar_category_ids = {34}  # Коктейлі
-    
-    # Генеруємо різні типи питань
-    for product in products:
-        product_name = product.get('product_name', '')
+    # Проходимо по кожній страві з меню офіціанта
+    for dish_name, dish_info in RESTAURANT_MENU.items():
+        # Знаходимо цю страву в тех.картках
+        techcard = find_dish_in_techcards(dish_name, techcard_products)
         
-        # ФІЛЬТРУЄМО: Пропускаємо порожні назви
-        if not product_name or len(product_name.strip()) < 2:
+        if not techcard:
+            logging.warning(f"Tech card not found for: {dish_name}")
             continue
         
-        # Пропускаємо продукти що починаються з + (це доплати/додатки)
-        if product_name.strip().startswith('+'):
+        logging.info(f"✓ Matched: {dish_name} -> {techcard.get('product_name')}")
+        
+        # Отримуємо інгредієнти з тех.картки
+        ingredients_raw = techcard.get('ingredients', [])
+        if not isinstance(ingredients_raw, list) or len(ingredients_raw) < 2:
             continue
         
-        # ВАЖЛИВО: Очищуємо назву від ваги/об'єму для ВСІХ питань
-        # Видаляємо частини типу ", 250 мл", ", 1л", ", 100 г", "40 г" з назви
-        clean_name = re.sub(r',?\s*\d+[\.,]?\d*\s*(мл|л|г|кг)', '', product_name, flags=re.IGNORECASE)
-        clean_name = clean_name.strip().rstrip(',').strip()
-        
-        # Якщо після очищення назва дуже коротка або порожня - пропускаємо
-        if len(clean_name) < 3:
-            continue
-        
-        # Ціна може бути числом або словником
-        price_raw = product.get('price', 0)
-        if isinstance(price_raw, dict):
-            price = 0
-        else:
-            try:
-                price = float(price_raw) / 100
-            except (ValueError, TypeError):
-                price = 0
-        
-        weight = product.get('out', '')
-        category_id = product.get('category_id')
-        
-        # Інгредієнти можуть бути списком або словником
-        ingredients_raw = product.get('ingredients', [])
-        if isinstance(ingredients_raw, list):
-            ingredients = ingredients_raw
-        else:
-            ingredients = []
-        
-        # 1. ПИТАННЯ ПРО ВАГУ (40% питань)
-        if weight:
-            # Конвертуємо вагу в строку
-            weight_str = str(weight)
+        # Фільтруємо інгредієнти
+        valid_ingredients = []
+        for ing in ingredients_raw:
+            ing_name = ing.get('ingredient_name', '')
             
-            # Беремо інші продукти для неправильних варіантів
-            other_weights = [str(p.get('out', '')) for p in products if p.get('out') and p['product_id'] != product['product_id']]
-            if len(other_weights) >= 3:
-                # Вибираємо тільки унікальні варіанти
-                wrong_weights = []
-                for w in other_weights:
-                    if w != weight_str and w not in wrong_weights:
-                        wrong_weights.append(w)
-                    if len(wrong_weights) == 3:
-                        break
-                
-                if len(wrong_weights) == 3:
-                    options = [weight_str] + wrong_weights
-                    random.shuffle(options)
-                    
-                    questions.append({
-                        "question": f"Яка вага/об'єм страви '{clean_name}'?",
-                        "options": options,
-                        "answer": weight_str,
-                        "category": "weight",
-                        "category_id": category_id
-                    })
-        
-        # 2. ПИТАННЯ ПРО СКЛАД/ІНГРЕДІЄНТИ (40% питань)
-        if ingredients and len(ingredients) > 0:
-            # Пропускаємо алкогольні напої без складних інгредієнтів (вино, пиво і т.д.)
-            skip_products = ['вино', 'пиво', 'віскі', 'коньяк', 'лікер', 'горілка', 'ром', 'джин', 'текіла', 'бренді', 'шампанське', 'просекко']
-            should_skip = False
-            for skip_word in skip_products:
-                if skip_word in clean_name.lower():
-                    should_skip = True
-                    break
-            
-            if should_skip:
-                continue  # Пропускаємо це питання
-            
-            # Перевіряємо що є нормальні інгредієнти (мінімум 2)
-            valid_ingredient_names = []
-            for ing in ingredients:
-                ing_name = ing.get('ingredient_name', '')
-                
-                if not ing_name or len(ing_name) < 3:
-                    continue
-                
-                # КРИТИЧНО: Фільтруємо інгредієнти які схожі на назву страви
-                # Перевіряємо схожість: якщо 50%+ слів з інгредієнту є в назві - це дублікат
-                ing_words = set(ing_name.lower().split())
-                name_words = set(clean_name.lower().split())
-                
-                # Якщо більше половини слів інгредієнту є в назві - пропускаємо
-                if len(ing_words) > 0:
-                    common_words = ing_words & name_words
-                    similarity = len(common_words) / len(ing_words)
-                    
-                    if similarity > 0.5:  # Більше 50% схожості
-                        continue
-                
-                # Також пропускаємо якщо інгредієнт повністю входить в назву
-                if ing_name.lower() in clean_name.lower():
-                    continue
-                
-                valid_ingredient_names.append(ing_name)
-            
-            # Якщо менше 2 інгредієнтів - пропускаємо (не цікаве питання)
-            if len(valid_ingredient_names) < 2:
+            if not ing_name or len(ing_name) < 3:
                 continue
             
-            # Вибираємо випадковий інгредієнт
-            real_ingredient = random.choice(valid_ingredient_names)
+            # Пропускаємо інгредієнти схожі на назву страви
+            if ing_name.lower() in dish_name.lower():
+                continue
             
-            # Збираємо інгредієнти ТІЛЬКИ З ТОГО Ж ТИПУ (бар з баром, кухня з кухнею)
-            same_type_ingredients = set()
-            
-            # Визначаємо чи це бар чи кухня
-            is_bar = category_id in bar_category_ids
-            
-            for p in products:
-                # Беремо інгредієнти тільки з того ж типу (бар/кухня)
-                p_is_bar = p.get('category_id') in bar_category_ids
-                
-                if is_bar == p_is_bar:  # Обидва бар або обидва кухня
-                    if isinstance(p.get('ingredients'), list):
-                        for ing in p['ingredients']:
-                            ing_name = ing.get('ingredient_name', '')
-                            if ing_name and ing_name != real_ingredient and len(ing_name) > 2:
-                                same_type_ingredients.add(ing_name)
-            
-            # Видаляємо правильну відповідь зі списку
-            same_type_ingredients.discard(real_ingredient)
-            
-            if len(same_type_ingredients) >= 3:
-                wrong_ingredients = random.sample(list(same_type_ingredients), 3)
-                options = [real_ingredient] + wrong_ingredients
-                random.shuffle(options)
-                
-                questions.append({
-                    "question": f"Який інгредієнт входить до складу '{clean_name}'?",
-                    "options": options,
-                    "answer": real_ingredient,
-                    "category": "ingredients",
-                    "category_id": category_id
-                })
+            valid_ingredients.append(ing_name)
         
-        # 3. ПИТАННЯ ПРО ЦІНУ (20% питань) - менше ніж раніше
-        if price > 0 and random.random() < 0.5:  # Генеруємо тільки для 50% страв
-            # Створюємо правдоподібні неправильні ціни
-            wrong_prices = [
-                f"{int(price * 0.8)}₴",
-                f"{int(price * 1.2)}₴",
-                f"{int(price * 1.5)}₴"
-            ]
-            correct_price = f"{int(price)}₴"
-            options = [correct_price] + wrong_prices
+        if len(valid_ingredients) < 2:
+            continue
+        
+        # ПИТАННЯ 1: Що входить в склад страви?
+        correct_ingredient = random.choice(valid_ingredients)
+        
+        # Збираємо неправильні варіанти з ІНШИХ страв
+        wrong_ingredients = []
+        for other_product in techcard_products:
+            if other_product['product_id'] == techcard['product_id']:
+                continue
+            
+            other_ings = other_product.get('ingredients', [])
+            if isinstance(other_ings, list):
+                for ing in other_ings:
+                    ing_name = ing.get('ingredient_name', '')
+                    if (ing_name and len(ing_name) >= 3 and 
+                        ing_name not in valid_ingredients and 
+                        ing_name not in wrong_ingredients):
+                        wrong_ingredients.append(ing_name)
+        
+        if len(wrong_ingredients) >= 3:
+            selected_wrong = random.sample(wrong_ingredients, 3)
+            options = [correct_ingredient] + selected_wrong
             random.shuffle(options)
             
             questions.append({
-                "question": f"Скільки коштує '{clean_name}'?",
+                "question": f"Що входить в склад страви '{dish_name}'?",
                 "options": options,
-                "answer": correct_price,
+                "answer": correct_ingredient,
+                "category": "ingredients",
+                "dish": dish_name
+            })
+        
+        # ПИТАННЯ 2: Скільки інгредієнтів в страві?
+        ingredient_count = len(valid_ingredients)
+        wrong_counts = [ingredient_count - 2, ingredient_count - 1, ingredient_count + 1, ingredient_count + 2]
+        wrong_counts = [c for c in wrong_counts if c > 0 and c != ingredient_count]
+        
+        if len(wrong_counts) >= 3:
+            selected_wrong_counts = random.sample(wrong_counts, 3)
+            options_counts = [str(ingredient_count)] + [str(c) for c in selected_wrong_counts]
+            random.shuffle(options_counts)
+            
+            questions.append({
+                "question": f"Скільки основних інгредієнтів в страві '{dish_name}'?",
+                "options": options_counts,
+                "answer": str(ingredient_count),
+                "category": "ingredient_count",
+                "dish": dish_name
+            })
+    
+    # Додаємо питання про ЦІНИ з меню
+    for dish_name, dish_info in RESTAURANT_MENU.items():
+        price = dish_info['price']
+        
+        # Беремо інші ціни для неправильних варіантів
+        other_prices = [info['price'] for name, info in RESTAURANT_MENU.items() if name != dish_name]
+        
+        if len(other_prices) >= 3:
+            wrong_prices = random.sample(other_prices, 3)
+            options_prices = [str(price)] + [str(p) for p in wrong_prices]
+            random.shuffle(options_prices)
+            
+            questions.append({
+                "question": f"Яка ціна страви '{dish_name}'?",
+                "options": [f"{p} ₴" for p in options_prices],
+                "answer": f"{price} ₴",
                 "category": "price",
-                "category_id": category_id
+                "dish": dish_name
+            })
+    
+    # Додаємо питання про ВАГУ з меню
+    for dish_name, dish_info in RESTAURANT_MENU.items():
+        weight = dish_info['weight']
+        
+        # Беремо інші ваги для неправильних варіантів
+        other_weights = [info['weight'] for name, info in RESTAURANT_MENU.items() 
+                        if name != dish_name and info['weight'] != weight]
+        
+        if len(other_weights) >= 3:
+            wrong_weights = random.sample(other_weights, 3)
+            options_weights = [weight] + wrong_weights
+            random.shuffle(options_weights)
+            
+            questions.append({
+                "question": f"Яка вага порції '{dish_name}'?",
+                "options": options_weights,
+                "answer": weight,
+                "category": "weight",
+                "dish": dish_name
             })
     
     QUESTIONS_DB = questions
-    logging.info(f"Generated {len(QUESTIONS_DB)} questions from Poster menu")
+    logging.info(f"Generated {len(questions)} questions from menu + tech cards")
+
+def get_random_questions(count=15):
+    """Повертає випадкові питання"""
+    if len(QUESTIONS_DB) < count:
+        return QUESTIONS_DB.copy()
+    return random.sample(QUESTIONS_DB, count)
 
 # ==================== GOOGLE SHEETS ====================
 
-def get_google_sheet():
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
-    ]
-    
-    creds_path = "/etc/secrets/project-telegram-bot-475412-704fc4e68815.json"
-    if not os.path.exists(creds_path):
-        creds_path = "creds.json"
-    
-    logging.info(f"Reading credentials from: {creds_path}")
-    creds = ServiceAccountCredentials.from_json_keyfile_name(creds_path, scope)
-    client = gspread.authorize(creds)
-    sheet = client.open_by_key(SPREADSHEET_ID).sheet1
-    logging.info("Successfully connected to Google Sheets!")
-    return sheet
-
 def save_result_to_sheet(username, first_name, correct, total, percentage):
+    """Зберігає результат в Google Sheets"""
+    if not SPREADSHEET_ID:
+        logging.warning("SPREADSHEET_ID not configured, skipping save")
+        return False
+    
     try:
-        sheet = get_google_sheet()
-        now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        display_name = f"{first_name} (@{username})" if username else first_name
+        scope = [
+            'https://spreadsheets.google.com/feeds',
+            'https://www.googleapis.com/auth/drive'
+        ]
         
-        sheet.append_row([now, display_name, f"{correct}/{total}", f"{percentage:.1f}%"])
-        logging.info(f"Result saved for {display_name}: {correct}/{total} ({percentage:.1f}%)")
+        creds_data = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+        if not creds_data:
+            logging.error("No Google credentials found")
+            return False
+        
+        import json
+        creds_dict = json.loads(creds_data)
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        client = gspread.authorize(creds)
+        
+        sheet = client.open_by_key(SPREADSHEET_ID).sheet1
+        
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row = [timestamp, username, first_name, correct, total, f"{percentage:.1f}%"]
+        sheet.append_row(row)
+        
+        logging.info(f"Saved result for {username}: {correct}/{total}")
         return True
+        
     except Exception as e:
         logging.error(f"Error saving to sheet: {e}")
         return False
 
-# ==================== КВІЗ ====================
-
-# Отримання випадкових питань з балансом між категоріями
-def get_random_questions(count=15):
-    if len(QUESTIONS_DB) < count:
-        count = len(QUESTIONS_DB)
-    
-    # Розділяємо питання на БАР (коктейлі) та КУХНЮ
-    bar_category_ids = {34}  # Тільки коктейлі
-    
-    bar_questions = [q for q in QUESTIONS_DB if q.get('category_id') in bar_category_ids]
-    kitchen_questions = [q for q in QUESTIONS_DB if q.get('category_id') not in bar_category_ids]
-    
-    # Беремо 3 питання з бару та 12 з кухні
-    selected_questions = []
-    
-    # 3 питання про бар
-    if len(bar_questions) >= 3:
-        selected_questions.extend(random.sample(bar_questions, 3))
-    else:
-        selected_questions.extend(bar_questions)
-    
-    # 12 питань про кухню (або скільки залишилось)
-    remaining = count - len(selected_questions)
-    if len(kitchen_questions) >= remaining:
-        selected_questions.extend(random.sample(kitchen_questions, remaining))
-    else:
-        selected_questions.extend(kitchen_questions)
-        # Якщо не вистачає, додаємо з бару
-        still_needed = count - len(selected_questions)
-        if still_needed > 0 and len(bar_questions) > 3:
-            selected_questions.extend(random.sample([q for q in bar_questions if q not in selected_questions], min(still_needed, len(bar_questions) - 3)))
-    
-    # Перемішуємо питання
-    random.shuffle(selected_questions)
-    
-    return selected_questions
+# ==================== ХЕНДЛЕРИ ====================
 
 @dp.message(Command("start"))
-async def start_command(message: types.Message, state: FSMContext):
+async def start_command(message: types.Message):
     await message.answer(
-        "🍽 Вітаю! Почнемо тест по меню ресторану!\n\n"
-        "📋 Умови тесту:\n"
-        "• 15 випадкових питань\n"
-        "• 10 секунд на відповідь\n"
-        "• 4 варіанти відповідей\n"
-        "• Вибирай відповідь з варіантів\n\n"
-        "Готовий? Натисни /quiz щоб почати!",
-        reply_markup=types.ReplyKeyboardRemove()
+        "👋 Привіт! Я бот для тестування знань меню.\n\n"
+        "Я допоможу тобі вивчити:\n"
+        "• Склад страв (з тех.карток)\n"
+        "• Ціни страв\n"
+        "• Вагу порцій\n"
+        "• Інгредієнти\n\n"
+        "Натисни /quiz щоб почати тест!\n"
+        "Або /help для довідки"
     )
 
 @dp.message(Command("quiz"))
@@ -392,14 +532,11 @@ async def send_question(message: types.Message, state: FSMContext):
     q = questions[current]
     question_text = f"❓ Питання {current + 1}/{len(questions)}\n\n{q['question']}"
     
-    # ВАЖЛИВО: Перемішуємо варіанти відповідей щоразу!
     options = q['options'].copy()
     random.shuffle(options)
     
-    # КРИТИЧНО: Конвертуємо всі варіанти в строки для KeyboardButton
     options = [str(opt) for opt in options]
     
-    # Клавіатура з 4 варіантами відповідей (по 2 в ряд)
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
             [types.KeyboardButton(text=options[0]), types.KeyboardButton(text=options[1])],
@@ -449,7 +586,6 @@ async def process_answer(message: types.Message, state: FSMContext):
     if elapsed_time > 10:
         return
     
-    # ВАЖЛИВО: Конвертуємо обидві відповіді в строки та нижній регістр
     correct_answer = str(questions[current]['answer']).strip().lower()
     user_answer = str(message.text).strip().lower()
     
@@ -504,7 +640,7 @@ async def finish_quiz(message: types.Message, state: FSMContext):
     if saved:
         result_text += "✅ Результат збережено!\n\n"
     else:
-        result_text += "⚠️ Помилка збереження результату\n\n"
+        result_text += "⚠️ Результати не збережені (Google Sheets не налаштовано)\n\n"
     
     result_text += "Щоб пройти тест знову, натисни /quiz"
     
@@ -516,26 +652,59 @@ async def help_command(message: types.Message):
     help_text = (
         "📚 Довідка\n\n"
         "Цей бот допоможе тобі вивчити меню ресторану.\n\n"
-        "🎯 Команди:\n"
+        "🎯 Типи питань:\n"
+        "• Склад страв (з технічних карток)\n"
+        "• Ціни страв\n"
+        "• Вага порцій\n"
+        "• Кількість інгредієнтів\n\n"
+        "📱 Команди:\n"
         "/start - Початок роботи\n"
         "/quiz - Почати тест (15 питань)\n"
         "/help - Показати цю довідку\n"
         "/cancel - Скасувати поточний тест\n"
-        "/reload - Оновити питання з Poster\n\n"
+        "/reload - Оновити питання\n"
+        "/stats - Показати статистику\n\n"
         "⏱ Умови тесту:\n"
         "• 15 випадкових питань\n"
         "• 10 секунд на кожну відповідь\n"
-        "• 4 варіанти відповідей\n"
-        "• Результати зберігаються автоматично\n\n"
+        "• 4 варіанти відповідей\n\n"
         "Удачі! 🍀"
     )
     await message.answer(help_text)
 
 @dp.message(Command("reload"))
 async def reload_command(message: types.Message):
-    await message.answer("🔄 Оновлюю питання з Poster...")
-    generate_questions_from_poster()
+    await message.answer("🔄 Оновлюю питання...")
+    generate_questions_from_menu_and_techcards()
     await message.answer(f"✅ Завантажено {len(QUESTIONS_DB)} питань!")
+
+@dp.message(Command("stats"))
+async def stats_command(message: types.Message):
+    if not QUESTIONS_DB:
+        await message.answer("⚠️ База питань порожня")
+        return
+    
+    # Підрахунок статистики
+    categories = {}
+    for q in QUESTIONS_DB:
+        cat = q.get('category', 'unknown')
+        categories[cat] = categories.get(cat, 0) + 1
+    
+    stats_text = f"📊 Статистика питань:\n\n"
+    stats_text += f"Всього питань: {len(QUESTIONS_DB)}\n\n"
+    
+    cat_names = {
+        'ingredients': '🥘 Склад страв',
+        'ingredient_count': '🔢 Кількість інгредієнтів',
+        'price': '💰 Ціни',
+        'weight': '⚖️ Вага порцій'
+    }
+    
+    for cat, count in categories.items():
+        cat_name = cat_names.get(cat, cat)
+        stats_text += f"{cat_name}: {count}\n"
+    
+    await message.answer(stats_text)
 
 @dp.message(Command("cancel"))
 async def cancel_command(message: types.Message, state: FSMContext):
@@ -567,11 +736,11 @@ async def echo(message: types.Message):
 # ==================== ЗАПУСК ====================
 
 async def main():
-    logging.info("Loading menu from Poster...")
-    generate_questions_from_poster()
+    logging.info("Loading menu and tech cards from Poster...")
+    generate_questions_from_menu_and_techcards()
     
     if not QUESTIONS_DB:
-        logging.error("Failed to load questions from Poster!")
+        logging.error("Failed to generate questions!")
     
     bot = Bot(token=TOKEN)
     await bot.delete_webhook(drop_pending_updates=True)
