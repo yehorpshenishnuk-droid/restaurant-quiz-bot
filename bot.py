@@ -44,165 +44,72 @@ dp = Dispatcher(storage=storage)
 # Глобальна база питань
 QUESTIONS_DB = []
 
-# ==================== МЕНЮ ДЛЯ ОФІЦІАНТІВ ====================
+# ==================== МЕНЮ РЕСТОРАНУ ====================
+# Тільки назва, ціна та вага. Склад береться з Poster API (тех.картки)
 
 RESTAURANT_MENU = {
-    "Плов який Ви полюбите": {
-        "price": 169,
-        "weight": "310 г",
-        "description": "Плов, приготований у казані за старовинним рецептом з яловичиною та бараниною",
-        "category": "Основні страви"
-    },
-    "Пельмені як мають бути з телятиною": {
-        "price": 169,
-        "weight": "310 г",
-        "description": "Соковиті пельмені з телятиною, домашня технологія",
-        "category": "Основні страви"
-    },
-    "Пельмені з філе курки": {
-        "price": 169,
-        "weight": "265 г",
-        "description": "Соковиті пельмені з куркою, домашня технологія",
-        "category": "Основні страви"
-    },
-    "Фрикадельки з індички у вершковому соусі з картопляним пюре": {
-        "price": 219,
-        "weight": "300 г",
-        "description": "Ніжні фрикадельки з індички у вершковому соусі",
-        "category": "Дитяче меню"
-    },
-    "Телячі щічки з вершковим пюре": {
-        "price": 369,
-        "weight": "370 г",
-        "description": "Телячі щічки томлені 24 години у винно-овочевому соусі",
-        "category": "Основні страви"
-    },
-    "Салат Цезар": {
-        "price": 239,
-        "weight": "300 г",
-        "description": "Курка на грилі, бекон, салат, помідори, пармезан, перепелині яйця",
-        "category": "Салати"
-    },
-    "Грецький салат": {
-        "price": 199,
-        "weight": "300 г",
-        "description": "Помідори, огірки, оливки, фета, болгарський перець",
-        "category": "Салати"
-    },
-    "Теплий салат з телятиною": {
-        "price": 229,
-        "weight": "260 г",
-        "description": "Телятина на грилі, фрілліс, рукола, томати, болгарський перець",
-        "category": "Салати"
-    },
-    "Овочевий салат з горіховою заправкою": {
-        "price": 169,
-        "weight": "300 г",
-        "description": "Помідори, огірки, цибуля маринована, горіховий соус",
-        "category": "Салати"
-    },
-    "Салат з запеченими овочами": {
-        "price": 179,
-        "weight": "310 г",
-        "description": "Запечені баклажани, перець, цибуля, томат",
-        "category": "Салати"
-    },
-    "Салат з хамоном та карамелізованою грушею": {
-        "price": 259,
-        "weight": "200 г",
-        "description": "Хамон, карамелізована груша, Дор Блю, рукола, грецькі горіхи",
-        "category": "Салати"
-    },
-    "Гарячий борщ": {
-        "price": 179,
-        "weight": "460 г",
-        "description": "Український борщ зі сметаною та пампушками",
-        "category": "Супи"
-    },
-    "Суп Вушка": {
-        "price": 119,
-        "weight": "320 г",
-        "description": "Дрібні пельмені зі свининою в курячому бульйоні",
-        "category": "Супи"
-    },
-    "Вершковий грибний крем-суп": {
-        "price": 159,
-        "weight": "310 г",
-        "description": "Крем-суп з печериць на вершках з грінками",
-        "category": "Супи"
-    },
-    "М'ясна солянка": {
-        "price": 169,
-        "weight": "310 г",
-        "description": "М'ясний бульйон з копченостями та ковбасами",
-        "category": "Супи"
-    },
-    "Крем-суп гарбузовий з беконом": {
-        "price": 159,
-        "weight": "310 г",
-        "description": "Мускатний гарбуз з вершками та хрустким беконом",
-        "category": "Супи"
-    },
-    "Картопля Фрі з соусами": {
-        "price": 79,
-        "weight": "140 г",
-        "description": "Хрустка картопля з соусом на вибір",
-        "category": "Закуски"
-    },
-    "Батат фрі з соусом цезар та пармезаном": {
-        "price": 139,
-        "weight": "155 г",
-        "description": "Батат фрі з соусом цезар та пармезаном",
-        "category": "Закуски"
-    },
-    "Стріпси з філе молодої курки": {
-        "price": 129,
-        "weight": "150 г",
-        "description": "Хрустка курка з соусом на вибір",
-        "category": "Закуски"
-    },
-    "Жульєн зі скоринкою Чедер": {
-        "price": 139,
-        "weight": "150 г",
-        "description": "М'ясо птиці, печериці, вершковий соус, Чедер",
-        "category": "Закуски"
-    },
-    "Люля-кебаб з трьома видами м'яса": {
-        "price": 189,
-        "weight": "260 г",
-        "description": "Яловичина, свинина, курка з цибулею та спеціями",
-        "category": "Гриль"
-    },
-    "Філе молодої курки": {
-        "price": 249,
-        "weight": "360 г",
-        "description": "Мариноване філе фермерської курки на грилі",
-        "category": "Гриль"
-    },
-    "Телятина на грилі": {
-        "price": 339,
-        "weight": "360 г",
-        "description": "Соковита телятина, прожарювання Medium",
-        "category": "Гриль"
-    },
-    "Шийна частина свинини": {
-        "price": 329,
-        "weight": "410 г",
-        "description": "Мариноване м'ясо з маринованою цибулею",
-        "category": "Гриль"
-    },
-    "Деруни зі сметаною": {
-        "price": 99,
-        "weight": "240 г",
-        "description": "Хрусткі картопляні оладки зі сметаною",
-        "category": "Деруни"
-    },
-    "Деруни з вершковим соусом та грибами": {
-        "price": 119,
-        "weight": "230 г",
-        "description": "Деруни з грибами, вершковим соусом та пармезаном",
-        "category": "Деруни"
-    }
+    "Плов який Ви полюбите": {"price": 169, "weight": "310 г"},
+    "Пельмені як мають бути з телятиною": {"price": 169, "weight": "310 г"},
+    "Пельмені з філе курки": {"price": 169, "weight": "265 г"},
+    "Фрикадельки з індички у вершковому соусі з картопляним пюре": {"price": 219, "weight": "300 г"},
+    "Телячі щічки з вершковим пюре": {"price": 369, "weight": "370 г"},
+    "Салат Цезар": {"price": 239, "weight": "300 г"},
+    "Грецький салат": {"price": 199, "weight": "300 г"},
+    "Теплий салат з телятиною": {"price": 229, "weight": "260 г"},
+    "Овочевий салат з горіховою заправкою": {"price": 169, "weight": "300 г"},
+    "Салат з запеченими овочами": {"price": 179, "weight": "310 г"},
+    "Пісний овочевий з горіховою заправкою": {"price": 169, "weight": "280 г"},
+    "Легкий салат з запеченим гарбузом": {"price": 199, "weight": "310 г"},
+    "Салат з хамоном та карамелізованою грушею": {"price": 259, "weight": "200 г"},
+    "Мікс салату з куркою сувід": {"price": 199, "weight": "245 г"},
+    "Піде з моцарелою, томатами та песто": {"price": 289, "weight": "600 г"},
+    "Сирне піде з інжиром та фісташкою": {"price": 289, "weight": "450 г"},
+    "Піде з сиром та часниковим соусом": {"price": 259, "weight": "505 г"},
+    "Піде з грушею і чотирма сирами": {"price": 329, "weight": "530 г"},
+    "Піде з телятиною": {"price": 279, "weight": "550 г"},
+    "Піде з куркою та томатами": {"price": 259, "weight": "550 г"},
+    "Гарячий борщ": {"price": 179, "weight": "460 г"},
+    "Гарячий борщ з сальцем, хріном та гірчицею": {"price": 269, "weight": "540 г"},
+    "Суп Вушка": {"price": 119, "weight": "320 г"},
+    "Вершковий грибний крем-суп": {"price": 159, "weight": "310 г"},
+    "М'ясна солянка": {"price": 169, "weight": "310 г"},
+    "Крем-суп гарбузовий з беконом": {"price": 159, "weight": "310 г"},
+    "Картопля Фрі з соусами": {"price": 79, "weight": "140 г"},
+    "Батат фрі з соусом цезар та пармезаном": {"price": 139, "weight": "155 г"},
+    "Стріпси з філе молодої курки": {"price": 129, "weight": "150 г"},
+    "Сирні хрусткі палички": {"price": 199, "weight": "220 г"},
+    "Картопля селянка": {"price": 99, "weight": "265 г"},
+    "Картопля по-селянськи з грибами": {"price": 159, "weight": "390 г"},
+    "Сирна тарілка": {"price": 265, "weight": "215 г"},
+    "Бадриджани з крем сиром та волоським горіхом": {"price": 189, "weight": "200 г"},
+    "Оливковий мікс": {"price": 129, "weight": "100 г"},
+    "Жульєн зі скоринкою Чедер": {"price": 139, "weight": "150 г"},
+    "Манти з сиром та зеленню": {"price": 34, "weight": "1 шт"},
+    "Манти з яловичиною (класичні)": {"price": 34, "weight": "1 шт"},
+    "Манти з яловичиною та свининою": {"price": 34, "weight": "1 шт"},
+    "Деруни зі сметаною": {"price": 99, "weight": "240 г"},
+    "Деруни з вершковим соусом та грибами": {"price": 119, "weight": "230 г"},
+    "Люля-кебаб з трьома видами м'яса": {"price": 189, "weight": "260 г"},
+    "Люля-кебаб з сиром та трьома видами м'яса": {"price": 189, "weight": "260 г"},
+    "Реберця в медово-гірчичному соусі": {"price": 249, "weight": "410 г"},
+    "Ніжне куряче стегно гриль": {"price": 239, "weight": "360 г"},
+    "Філе молодої курки": {"price": 249, "weight": "360 г"},
+    "Телятина на грилі": {"price": 339, "weight": "360 г"},
+    "Шийна частина свинини": {"price": 329, "weight": "410 г"},
+    "Млинці з куркою та грибами": {"price": 129, "weight": "230 г"},
+    "Млинці з куркою": {"price": 129, "weight": "230 г"},
+    "Млинці солодкі з ванільним сиром": {"price": 129, "weight": "230 г"},
+    "Сирники": {"price": 119, "weight": "190 г"},
+    "Гарбузовий тост з лісовими лисичками та яйцем пашот": {"price": 209, "weight": "195 г"},
+    "Сніданок Фрітата": {"price": 169, "weight": "330 г"},
+    "Сніданок Бюргер": {"price": 189, "weight": "400 г"},
+    "Сніданок Субмарина": {"price": 209, "weight": "440 г"},
+    "Сніданок Шакшука": {"price": 159, "weight": "340 г"},
+    "Сніданок Як вдома": {"price": 179, "weight": "320 г"},
+    "Ніжне крем-брюле": {"price": 129, "weight": "160 г"},
+    "Шоколадний фондан": {"price": 169, "weight": "140 г"},
+    "Чизкейк LA": {"price": 139, "weight": "165 г"},
+    "Вафельний десерт з натяком на рафаело": {"price": 99, "weight": "115 г"},
 }
 
 # ==================== POSTER API ====================
@@ -251,15 +158,15 @@ def get_techcard_categories():
     techcard_ids = set()
     
     for cat_id, cat_name in categories.items():
-        # Шукаємо категорії за ключовими словами
         cat_name_lower = cat_name.lower()
+        # Шукаємо категорії за ключовими словами
         if any(keyword in cat_name_lower for keyword in ['тех', 'картк', 'напів', 'фабрикат']):
             techcard_ids.add(cat_id)
             logging.info(f"Found tech card category: {cat_name} (ID: {cat_id})")
     
     return techcard_ids
 
-# ==================== ЗІСТАВЛЕННЯ МЕНЮ З ТЕХ.КАРТКАМИ ====================
+# ==================== ЗІСТАВЛЕННЯ СТРАВ ====================
 
 def normalize_dish_name(name):
     """Нормалізує назву страви для зіставлення"""
@@ -268,45 +175,58 @@ def normalize_dish_name(name):
     # Видаляємо зайві слова
     name = name.lower().strip()
     # Видаляємо розділові знаки
-    name = re.sub(r'[^\w\s]', '', name)
+    name = re.sub(r'[^\wа-яії\s]', '', name, flags=re.UNICODE)
+    # Видаляємо зайві пробіли
+    name = ' '.join(name.split())
     return name
 
 def find_dish_in_techcards(dish_name, techcard_products):
-    """Знаходить страву в тех.картках"""
+    """Знаходить страву з меню в тех.картках Poster"""
     normalized_dish = normalize_dish_name(dish_name)
+    dish_words = set(normalized_dish.split())
+    
+    best_match = None
+    best_score = 0
     
     for product in techcard_products:
         product_name = product.get('product_name', '')
         normalized_product = normalize_dish_name(product_name)
+        product_words = set(normalized_product.split())
         
-        # Перевіряємо схожість назв
+        # Точне співпадіння
+        if normalized_dish == normalized_product:
+            return product
+        
+        # Один містить інший
         if normalized_dish in normalized_product or normalized_product in normalized_dish:
             return product
         
-        # Перевіряємо по ключових словах
-        dish_words = set(normalized_dish.split())
-        product_words = set(normalized_product.split())
-        common_words = dish_words & product_words
-        
-        # Якщо більше 60% слів співпадають - це наша страва
-        if len(common_words) > 0 and len(dish_words) > 0:
-            similarity = len(common_words) / len(dish_words)
-            if similarity >= 0.6:
-                return product
+        # Рахуємо схожість по словам
+        if len(dish_words) > 0 and len(product_words) > 0:
+            common_words = dish_words & product_words
+            similarity = len(common_words) / max(len(dish_words), len(product_words))
+            
+            if similarity > best_score:
+                best_score = similarity
+                best_match = product
+    
+    # Повертаємо найкраще співпадіння якщо схожість більше 40%
+    if best_score >= 0.4:
+        return best_match
     
     return None
 
 # ==================== ГЕНЕРАЦІЯ ПИТАНЬ ====================
 
 def generate_questions_from_menu_and_techcards():
-    """Генерує питання з меню офіціанта та тех.карток Poster"""
+    """Генерує питання з меню (ціна, вага) та тех.карток (склад)"""
     global QUESTIONS_DB
     
-    # Отримуємо продукти з тех.карток
+    # Отримуємо тех.картки з Poster
     techcard_cat_ids = get_techcard_categories()
+    
     if not techcard_cat_ids:
-        logging.error("No tech card categories found!")
-        return
+        logging.warning("No tech card categories found! Questions will only be about price/weight")
     
     all_products = get_poster_products()
     techcard_products = [p for p in all_products if p.get('category_id') in techcard_cat_ids]
@@ -314,33 +234,81 @@ def generate_questions_from_menu_and_techcards():
     logging.info(f"Found {len(techcard_products)} products in tech cards")
     
     questions = []
+    matched_dishes = 0
     
-    # Проходимо по кожній страві з меню офіціанта
+    # Проходимо по кожній страві з меню
     for dish_name, dish_info in RESTAURANT_MENU.items():
-        # Знаходимо цю страву в тех.картках
+        price = dish_info['price']
+        weight = dish_info['weight']
+        
+        # ПИТАННЯ ПРО ЦІНУ
+        other_prices = [info['price'] for name, info in RESTAURANT_MENU.items() if name != dish_name]
+        if len(other_prices) >= 3:
+            # Вибираємо унікальні ціни
+            unique_prices = list(set(other_prices))
+            if len(unique_prices) >= 3:
+                wrong_prices = random.sample(unique_prices, min(3, len(unique_prices)))
+                options = [f"{price} ₴"] + [f"{p} ₴" for p in wrong_prices if p != price][:3]
+                
+                if len(options) == 4:
+                    random.shuffle(options)
+                    questions.append({
+                        "question": f"Яка ціна страви '{dish_name}'?",
+                        "options": options,
+                        "answer": f"{price} ₴",
+                        "category": "price",
+                        "dish": dish_name
+                    })
+        
+        # ПИТАННЯ ПРО ВАГУ
+        other_weights = [info['weight'] for name, info in RESTAURANT_MENU.items() 
+                        if name != dish_name and info['weight'] != weight and info['weight'] != "не вказано"]
+        
+        if len(other_weights) >= 3 and weight != "не вказано":
+            unique_weights = list(set(other_weights))
+            if len(unique_weights) >= 3:
+                wrong_weights = random.sample(unique_weights, min(3, len(unique_weights)))
+                options = [weight] + wrong_weights[:3]
+                
+                if len(options) == 4:
+                    random.shuffle(options)
+                    questions.append({
+                        "question": f"Яка вага порції '{dish_name}'?",
+                        "options": options,
+                        "answer": weight,
+                        "category": "weight",
+                        "dish": dish_name
+                    })
+        
+        # ПИТАННЯ ПРО СКЛАД (з тех.карток)
+        if not techcard_products:
+            continue
+        
         techcard = find_dish_in_techcards(dish_name, techcard_products)
         
         if not techcard:
-            logging.warning(f"Tech card not found for: {dish_name}")
             continue
         
-        logging.info(f"✓ Matched: {dish_name} -> {techcard.get('product_name')}")
+        matched_dishes += 1
+        logging.info(f"✓ Matched: {dish_name} → {techcard.get('product_name')}")
         
-        # Отримуємо інгредієнти з тех.картки
+        # Отримуємо інгредієнти
         ingredients_raw = techcard.get('ingredients', [])
         if not isinstance(ingredients_raw, list) or len(ingredients_raw) < 2:
             continue
         
         # Фільтруємо інгредієнти
         valid_ingredients = []
+        dish_name_lower = dish_name.lower()
+        
         for ing in ingredients_raw:
-            ing_name = ing.get('ingredient_name', '')
+            ing_name = ing.get('ingredient_name', '').strip()
             
             if not ing_name or len(ing_name) < 3:
                 continue
             
             # Пропускаємо інгредієнти схожі на назву страви
-            if ing_name.lower() in dish_name.lower():
+            if ing_name.lower() in dish_name_lower:
                 continue
             
             valid_ingredients.append(ing_name)
@@ -348,10 +316,10 @@ def generate_questions_from_menu_and_techcards():
         if len(valid_ingredients) < 2:
             continue
         
-        # ПИТАННЯ 1: Що входить в склад страви?
+        # ПИТАННЯ: Що входить в склад?
         correct_ingredient = random.choice(valid_ingredients)
         
-        # Збираємо неправильні варіанти з ІНШИХ страв
+        # Збираємо неправильні варіанти з інших страв
         wrong_ingredients = []
         for other_product in techcard_products:
             if other_product['product_id'] == techcard['product_id']:
@@ -360,7 +328,7 @@ def generate_questions_from_menu_and_techcards():
             other_ings = other_product.get('ingredients', [])
             if isinstance(other_ings, list):
                 for ing in other_ings:
-                    ing_name = ing.get('ingredient_name', '')
+                    ing_name = ing.get('ingredient_name', '').strip()
                     if (ing_name and len(ing_name) >= 3 and 
                         ing_name not in valid_ingredients and 
                         ing_name not in wrong_ingredients):
@@ -378,68 +346,19 @@ def generate_questions_from_menu_and_techcards():
                 "category": "ingredients",
                 "dish": dish_name
             })
-        
-        # ПИТАННЯ 2: Скільки інгредієнтів в страві?
-        ingredient_count = len(valid_ingredients)
-        wrong_counts = [ingredient_count - 2, ingredient_count - 1, ingredient_count + 1, ingredient_count + 2]
-        wrong_counts = [c for c in wrong_counts if c > 0 and c != ingredient_count]
-        
-        if len(wrong_counts) >= 3:
-            selected_wrong_counts = random.sample(wrong_counts, 3)
-            options_counts = [str(ingredient_count)] + [str(c) for c in selected_wrong_counts]
-            random.shuffle(options_counts)
-            
-            questions.append({
-                "question": f"Скільки основних інгредієнтів в страві '{dish_name}'?",
-                "options": options_counts,
-                "answer": str(ingredient_count),
-                "category": "ingredient_count",
-                "dish": dish_name
-            })
-    
-    # Додаємо питання про ЦІНИ з меню
-    for dish_name, dish_info in RESTAURANT_MENU.items():
-        price = dish_info['price']
-        
-        # Беремо інші ціни для неправильних варіантів
-        other_prices = [info['price'] for name, info in RESTAURANT_MENU.items() if name != dish_name]
-        
-        if len(other_prices) >= 3:
-            wrong_prices = random.sample(other_prices, 3)
-            options_prices = [str(price)] + [str(p) for p in wrong_prices]
-            random.shuffle(options_prices)
-            
-            questions.append({
-                "question": f"Яка ціна страви '{dish_name}'?",
-                "options": [f"{p} ₴" for p in options_prices],
-                "answer": f"{price} ₴",
-                "category": "price",
-                "dish": dish_name
-            })
-    
-    # Додаємо питання про ВАГУ з меню
-    for dish_name, dish_info in RESTAURANT_MENU.items():
-        weight = dish_info['weight']
-        
-        # Беремо інші ваги для неправильних варіантів
-        other_weights = [info['weight'] for name, info in RESTAURANT_MENU.items() 
-                        if name != dish_name and info['weight'] != weight]
-        
-        if len(other_weights) >= 3:
-            wrong_weights = random.sample(other_weights, 3)
-            options_weights = [weight] + wrong_weights
-            random.shuffle(options_weights)
-            
-            questions.append({
-                "question": f"Яка вага порції '{dish_name}'?",
-                "options": options_weights,
-                "answer": weight,
-                "category": "weight",
-                "dish": dish_name
-            })
     
     QUESTIONS_DB = questions
-    logging.info(f"Generated {len(questions)} questions from menu + tech cards")
+    logging.info(f"✅ Generated {len(questions)} questions")
+    logging.info(f"📊 Matched {matched_dishes}/{len(RESTAURANT_MENU)} dishes with tech cards")
+    
+    # Статистика
+    stats = {}
+    for q in questions:
+        cat = q['category']
+        stats[cat] = stats.get(cat, 0) + 1
+    
+    for cat, count in stats.items():
+        logging.info(f"   {cat}: {count} questions")
 
 def get_random_questions(count=15):
     """Повертає випадкові питання"""
@@ -452,7 +371,7 @@ def get_random_questions(count=15):
 def save_result_to_sheet(username, first_name, correct, total, percentage):
     """Зберігає результат в Google Sheets"""
     if not SPREADSHEET_ID:
-        logging.warning("SPREADSHEET_ID not configured, skipping save")
+        logging.warning("SPREADSHEET_ID not configured")
         return False
     
     try:
@@ -463,7 +382,7 @@ def save_result_to_sheet(username, first_name, correct, total, percentage):
         
         creds_data = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
         if not creds_data:
-            logging.error("No Google credentials found")
+            logging.error("No Google credentials")
             return False
         
         import json
@@ -490,11 +409,11 @@ def save_result_to_sheet(username, first_name, correct, total, percentage):
 async def start_command(message: types.Message):
     await message.answer(
         "👋 Привіт! Я бот для тестування знань меню.\n\n"
+        f"📚 У мене {len(RESTAURANT_MENU)} страв в базі\n\n"
         "Я допоможу тобі вивчити:\n"
-        "• Склад страв (з тех.карток)\n"
+        "• Склад страв (з технічних карток)\n"
         "• Ціни страв\n"
-        "• Вагу порцій\n"
-        "• Інгредієнти\n\n"
+        "• Вагу порцій\n\n"
         "Натисни /quiz щоб почати тест!\n"
         "Або /help для довідки"
     )
@@ -534,7 +453,6 @@ async def send_question(message: types.Message, state: FSMContext):
     
     options = q['options'].copy()
     random.shuffle(options)
-    
     options = [str(opt) for opt in options]
     
     keyboard = types.ReplyKeyboardMarkup(
@@ -639,8 +557,6 @@ async def finish_quiz(message: types.Message, state: FSMContext):
     
     if saved:
         result_text += "✅ Результат збережено!\n\n"
-    else:
-        result_text += "⚠️ Результати не збережені (Google Sheets не налаштовано)\n\n"
     
     result_text += "Щоб пройти тест знову, натисни /quiz"
     
@@ -653,16 +569,15 @@ async def help_command(message: types.Message):
         "📚 Довідка\n\n"
         "Цей бот допоможе тобі вивчити меню ресторану.\n\n"
         "🎯 Типи питань:\n"
-        "• Склад страв (з технічних карток)\n"
+        "• Склад страв (з технічних карток Poster)\n"
         "• Ціни страв\n"
-        "• Вага порцій\n"
-        "• Кількість інгредієнтів\n\n"
+        "• Вага порцій\n\n"
         "📱 Команди:\n"
         "/start - Початок роботи\n"
         "/quiz - Почати тест (15 питань)\n"
         "/help - Показати цю довідку\n"
         "/cancel - Скасувати поточний тест\n"
-        "/reload - Оновити питання\n"
+        "/reload - Оновити питання з Poster\n"
         "/stats - Показати статистику\n\n"
         "⏱ Умови тесту:\n"
         "• 15 випадкових питань\n"
@@ -674,9 +589,28 @@ async def help_command(message: types.Message):
 
 @dp.message(Command("reload"))
 async def reload_command(message: types.Message):
-    await message.answer("🔄 Оновлюю питання...")
+    await message.answer("🔄 Оновлюю питання з Poster...")
     generate_questions_from_menu_and_techcards()
-    await message.answer(f"✅ Завантажено {len(QUESTIONS_DB)} питань!")
+    
+    stats = {}
+    for q in QUESTIONS_DB:
+        cat = q['category']
+        stats[cat] = stats.get(cat, 0) + 1
+    
+    result = f"✅ Завантажено {len(QUESTIONS_DB)} питань!\n\n"
+    result += "📊 Розподіл:\n"
+    
+    cat_names = {
+        'ingredients': '🥘 Склад',
+        'price': '💰 Ціна',
+        'weight': '⚖️ Вага'
+    }
+    
+    for cat, count in stats.items():
+        cat_name = cat_names.get(cat, cat)
+        result += f"{cat_name}: {count}\n"
+    
+    await message.answer(result)
 
 @dp.message(Command("stats"))
 async def stats_command(message: types.Message):
@@ -684,23 +618,22 @@ async def stats_command(message: types.Message):
         await message.answer("⚠️ База питань порожня")
         return
     
-    # Підрахунок статистики
-    categories = {}
+    stats = {}
     for q in QUESTIONS_DB:
         cat = q.get('category', 'unknown')
-        categories[cat] = categories.get(cat, 0) + 1
+        stats[cat] = stats.get(cat, 0) + 1
     
-    stats_text = f"📊 Статистика питань:\n\n"
-    stats_text += f"Всього питань: {len(QUESTIONS_DB)}\n\n"
+    stats_text = f"📊 Статистика:\n\n"
+    stats_text += f"📚 Меню: {len(RESTAURANT_MENU)} страв\n"
+    stats_text += f"❓ Питань: {len(QUESTIONS_DB)}\n\n"
     
     cat_names = {
         'ingredients': '🥘 Склад страв',
-        'ingredient_count': '🔢 Кількість інгредієнтів',
         'price': '💰 Ціни',
-        'weight': '⚖️ Вага порцій'
+        'weight': '⚖️ Вага'
     }
     
-    for cat, count in categories.items():
+    for cat, count in stats.items():
         cat_name = cat_names.get(cat, cat)
         stats_text += f"{cat_name}: {count}\n"
     
@@ -729,6 +662,7 @@ async def unknown_answer(message: types.Message):
 async def echo(message: types.Message):
     await message.answer(
         "👋 Привіт! Я бот для тестування знань меню.\n\n"
+        f"📚 У базі {len(RESTAURANT_MENU)} страв\n\n"
         "Натисни /quiz щоб почати тест\n"
         "Або /help для довідки"
     )
@@ -736,16 +670,19 @@ async def echo(message: types.Message):
 # ==================== ЗАПУСК ====================
 
 async def main():
-    logging.info("Loading menu and tech cards from Poster...")
+    logging.info("🚀 Starting bot...")
+    logging.info(f"📚 Menu: {len(RESTAURANT_MENU)} dishes")
+    logging.info("🔄 Loading questions from Poster...")
+    
     generate_questions_from_menu_and_techcards()
     
     if not QUESTIONS_DB:
-        logging.error("Failed to generate questions!")
+        logging.warning("⚠️ No questions generated!")
     
     bot = Bot(token=TOKEN)
     await bot.delete_webhook(drop_pending_updates=True)
-    logging.info("🤖 Bot started successfully!")
-    logging.info(f"📚 Loaded {len(QUESTIONS_DB)} questions")
+    logging.info("✅ Bot started successfully!")
+    logging.info(f"❓ Total questions: {len(QUESTIONS_DB)}")
     
     try:
         await dp.start_polling(bot)
@@ -756,4 +693,4 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
-        logging.info("Bot stopped manually.")
+        logging.info("Bot stopped.")
