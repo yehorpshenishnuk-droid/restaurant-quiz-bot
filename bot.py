@@ -424,17 +424,18 @@ def save_result_to_sheet(username, first_name, correct, total, percentage):
         
         # Спосіб 1: З /etc/secrets/ (Railway Secret Files)
         secret_files = [
+            '/etc/secrets/project-telegram-bot-475412-704fc4e68815.json',  # Ваш файл
             '/etc/secrets/project-telegram-bot-475412-a0a54cadf5d4.json',
             '/etc/secrets/google-credentials.json',
         ]
         
         for secret_path in secret_files:
             if os.path.exists(secret_path):
-                logging.info(f"Found credentials at: {secret_path}")
+                logging.info(f"✅ Found credentials at: {secret_path}")
                 creds = ServiceAccountCredentials.from_json_keyfile_name(secret_path, scope)
                 break
         
-        # Спосіб 2: З змінної оточення (як раніше)
+        # Спосіб 2: З змінної оточення
         if not creds:
             creds_data = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
             if creds_data:
