@@ -157,12 +157,38 @@ def get_techcard_categories():
     categories = get_poster_categories()
     techcard_ids = set()
     
+    # ВАРІАНТ 1: Якщо ви знаєте точні ID - вкажіть тут
+    # Розкоментуйте і вкажіть ваші ID:
+    # MANUAL_IDS = {45, 67}  # Замініть на ваші ID
+    # return MANUAL_IDS
+    
+    # ВАРІАНТ 2: Автоматичний пошук за назвами
     for cat_id, cat_name in categories.items():
-        cat_name_lower = cat_name.lower()
-        # Шукаємо категорії за ключовими словами
-        if any(keyword in cat_name_lower for keyword in ['тех', 'картк', 'напів', 'фабрикат']):
-            techcard_ids.add(cat_id)
-            logging.info(f"Found tech card category: {cat_name} (ID: {cat_id})")
+        cat_name_lower = cat_name.lower().strip()
+        
+        # Шукаємо за точними та частковими збігами
+        search_terms = [
+            'тех. картки',
+            'тех картки', 
+            'технічні картки',
+            'напівфабрикати',
+            'напівфабрикат',
+            'tech card',
+            'dishes',  # з URL /manage/dishes
+            'prepack'  # з URL /manage/prepack
+        ]
+        
+        for term in search_terms:
+            if term in cat_name_lower:
+                techcard_ids.add(cat_id)
+                logging.info(f"✅ Found tech card category: '{cat_name}' (ID: {cat_id})")
+                break
+    
+    if not techcard_ids:
+        logging.warning("⚠️ No tech card categories found! Trying all categories with ingredients...")
+        # Якщо не знайшли - повертаємо всі категорії
+        # Щоб бот використовував всі страви які мають інгредієнти
+        return set(categories.keys())
     
     return techcard_ids
 
@@ -222,16 +248,29 @@ def generate_questions_from_menu_and_techcards():
     """Генерує питання з меню (ціна, вага) та тех.карток (склад)"""
     global QUESTIONS_DB
     
-    # Отримуємо тех.картки з Poster
+    logging.info("="*60)
+    logging.info("🔄 Завантаження даних з Poster...")
+    
+    # Отримуємо всі категорії
+    all_categories = get_poster_categories()
+    logging.info(f"📋 Всього категорій в Poster: {len(all_categories)}")
+    
+    # Знаходимо тех.картки
     techcard_cat_ids = get_techcard_categories()
     
-    if not techcard_cat_ids:
-        logging.warning("No tech card categories found! Questions will only be about price/weight")
+    if techcard_cat_ids:
+        logging.info(f"✅ Знайдено категорій тех.карток: {len(techcard_cat_ids)}")
+        for cat_id in techcard_cat_ids:
+            cat_name = all_categories.get(cat_id, 'Unknown')
+            logging.info(f"   - ID {cat_id}: {cat_name}")
+    else:
+        logging.warning("⚠️ Категорії тех.карток не знайдені!")
     
     all_products = get_poster_products()
     techcard_products = [p for p in all_products if p.get('category_id') in techcard_cat_ids]
     
-    logging.info(f"Found {len(techcard_products)} products in tech cards")
+    logging.info(f"📦 Продуктів в тех.картках: {len(techcard_products)}/{len(all_products)}")
+    logging.info("="*60)
     
     questions = []
     matched_dishes = 0
@@ -380,14 +419,33 @@ def save_result_to_sheet(username, first_name, correct, total, percentage):
             'https://www.googleapis.com/auth/drive'
         ]
         
-        creds_data = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-        if not creds_data:
-            logging.error("No Google credentials")
+        # Спробуємо знайти credentials
+        creds = None
+        
+        # Спосіб 1: З /etc/secrets/ (Railway Secret Files)
+        secret_files = [
+            '/etc/secrets/project-telegram-bot-475412-a0a54cadf5d4.json',
+            '/etc/secrets/google-credentials.json',
+        ]
+        
+        for secret_path in secret_files:
+            if os.path.exists(secret_path):
+                logging.info(f"Found credentials at: {secret_path}")
+                creds = ServiceAccountCredentials.from_json_keyfile_name(secret_path, scope)
+                break
+        
+        # Спосіб 2: З змінної оточення (як раніше)
+        if not creds:
+            creds_data = os.getenv("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+            if creds_data:
+                import json
+                creds_dict = json.loads(creds_data)
+                creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        
+        if not creds:
+            logging.error("No Google credentials found")
             return False
         
-        import json
-        creds_dict = json.loads(creds_data)
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
         
         sheet = client.open_by_key(SPREADSHEET_ID).sheet1
