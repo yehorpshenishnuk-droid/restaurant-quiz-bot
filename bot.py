@@ -185,9 +185,9 @@ def get_techcard_categories():
                 break
     
     if not techcard_ids:
-        logging.warning("⚠️ No tech card categories found! Trying all categories with ingredients...")
-        # Якщо не знайшли - повертаємо всі категорії
-        # Щоб бот використовував всі страви які мають інгредієнти
+        logging.warning("⚠️ No tech card categories found by name!")
+        logging.warning("⚠️ Will search through ALL products with type=2 (tech cards)")
+        # Возвращаем все категории чтобы не пропустить тех.карты
         return set(categories.keys())
     
     return techcard_ids
@@ -267,9 +267,42 @@ def generate_questions_from_menu_and_techcards():
         logging.warning("⚠️ Категорії тех.карток не знайдені!")
     
     all_products = get_poster_products()
-    techcard_products = [p for p in all_products if p.get('category_id') in techcard_cat_ids]
+    
+    # Статистика по типам продуктів
+    type_stats = {}
+    for p in all_products:
+        ptype = p.get('type', 'unknown')
+        type_stats[ptype] = type_stats.get(ptype, 0) + 1
+    
+    logging.info(f"📦 Всього продуктів: {len(all_products)}")
+    logging.info(f"   По типам: {type_stats}")
+    logging.info(f"   type=1 (напівфабрикат): {type_stats.get('1', 0)}")
+    logging.info(f"   type=2 (тех.карта): {type_stats.get('2', 0)}")
+    logging.info(f"   type=3 (товар): {type_stats.get('3', 0)}")
+    
+    # Фільтруємо тільки тех.карти (type=2) які мають інгредієнти
+    techcard_products = [
+        p for p in all_products 
+        if p.get('type') == '2' and 
+        p.get('category_id') in techcard_cat_ids and
+        isinstance(p.get('ingredients'), list) and
+        len(p.get('ingredients', [])) > 0
+    ]
     
     logging.info(f"📦 Продуктів в тех.картках: {len(techcard_products)}/{len(all_products)}")
+    
+    # Додаткова статистика
+    all_techcards = [p for p in all_products if p.get('type') == '2']
+    techcards_with_ing = [p for p in all_techcards if isinstance(p.get('ingredients'), list) and len(p.get('ingredients', [])) > 0]
+    logging.info(f"   Всього тех.карт (type=2): {len(all_techcards)}")
+    logging.info(f"   Тех.карт з інгредієнтами: {len(techcards_with_ing)}")
+    
+    # Показуємо приклади тех.карт
+    if all_techcards and len(all_techcards) > 0:
+        logging.info("   Приклади тех.карт:")
+        for tc in all_techcards[:5]:  # Перші 5
+            has_ing = len(tc.get('ingredients', [])) if isinstance(tc.get('ingredients'), list) else 0
+            logging.info(f"     - '{tc.get('product_name')}' (ID: {tc.get('product_id')}, cat: {tc.get('category_id')}, ingredients: {has_ing})")
     logging.info("="*60)
     
     questions = []
